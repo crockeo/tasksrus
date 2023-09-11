@@ -24,5 +24,6 @@ fn greet(name: &str) -> String {
 
 #[tauri::command]
 fn get_tasks(state: tauri::State<Database>) -> Vec<Task> {
-    vec![state.inner().new_task().unwrap()]
+    state.inner().new_task().unwrap();
+    state.inner().root_tasks().unwrap()
 }

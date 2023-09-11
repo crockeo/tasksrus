@@ -1,7 +1,14 @@
-.logo.vite:hover {
-  filter: drop-shadow(0 0 2em #747bff);
+.taskList {
+    display: flex;
+    flex-direction: column;
+    grid-column: 1 / 1;
+    justify-content: space-between;
+    padding: 2vh;
 }
 
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafb);
+.title {
+}
+
+.taskContent {
+    grid-column: 2;
 }
