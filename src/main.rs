@@ -3,18 +3,16 @@
 mod database;
 
 use crate::database::MemoryDatabase;
+use crate::database::Task;
+use crate::database::TaskDatabase;
 
-static mut DATABASE: Option<MemoryDatabase> = None;
+type Database = MemoryDatabase;
 
 fn main() {
-    unsafe {
-        // This runs first, and is the only place that we touch `DATABASE` mutably.
-        // I'm sure that there's a better way, but I'll deal with it later.
-        DATABASE.replace(database::MemoryDatabase::new());
-    }
-
     tauri::Builder::default()
+        .manage(Database::new())
         .invoke_handler(tauri::generate_handler![greet])
+        .invoke_handler(tauri::generate_handler![get_tasks])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
@@ -22,4 +20,9 @@ fn main() {
 #[tauri::command]
 fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
+}
+
+#[tauri::command]
+fn get_tasks(state: tauri::State<Database>) -> Vec<Task> {
+    vec![state.inner().new_task().unwrap()]
 }

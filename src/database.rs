@@ -1,11 +1,12 @@
 use anyhow::anyhow;
+use serde::Serialize;
 use std::collections::BTreeMap;
 use std::collections::BTreeSet;
 use std::sync::Mutex;
 
 type TaskID = usize;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct Task {
     inner_id: TaskID,
     pub title: String,
@@ -24,7 +25,7 @@ impl Task {
     }
 }
 
-pub trait TaskDatabase {
+pub trait TaskDatabase: Send + Sync {
     fn new_task(&self) -> anyhow::Result<Task>;
     fn update_task(&self, task: &Task) -> anyhow::Result<()>;
     fn link_tasks(&self, from: &Task, to: &Task) -> anyhow::Result<()>;
@@ -43,9 +44,9 @@ impl TaskSet {
     fn get_by_ids(&self, ids: &[TaskID]) -> anyhow::Result<Vec<Task>> {
         let mut tasks = Vec::new();
         for id in ids.iter() {
-	    if !self.tasks.contains_key(&id) {
-		return Err(anyhow!("Database does not contain item: {}", id));
-	    }
+            if !self.tasks.contains_key(&id) {
+                return Err(anyhow!("Database does not contain item: {}", id));
+            }
 
             let task = self.tasks.get(id).unwrap();
             tasks.push(task.clone());

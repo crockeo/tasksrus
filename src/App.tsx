@@ -6,10 +6,17 @@ import "./App.css";
 function App() {
   const [greetMsg, setGreetMsg] = useState("");
   const [name, setName] = useState("");
+  const [tasks, setTasks] = useState([]);
 
   async function greet() {
     // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
     setGreetMsg(await invoke("greet", { name }));
+  }
+
+  async function getTasks() {
+    console.log("Hello world!");
+    setTasks(await invoke("get_tasks"));
+    console.log(tasks);
   }
 
   return (
@@ -46,6 +53,20 @@ function App() {
       </form>
 
       <p>{greetMsg}</p>
+
+      <button onClick={(e) => {
+	e.preventDefault();
+	getTasks();
+      }}>Get Tasks</button>
+
+      <div>
+	  {tasks.map((task, i) =>
+	    <div>
+		{task.inner_id} {task.title}
+	    </div>
+	  )}
+      </div>
+
     </div>
   );
 }
