@@ -52,10 +52,6 @@ function App() {
     <div className="container">
       <div className="task-list">
 	<div>
-          <div className="title">Tasks</div>
-
-          <div className="space-medium"></div>
-
 	  <Category mode={Mode.Inbox} currentView={currentView} setCurrentView={setCurrentView} />
 
           <div className="space-small"></div>
