@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import reactLogo from "./assets/react.svg";
 import { invoke } from "@tauri-apps/api/tauri";
 import "./App.css";
@@ -19,38 +19,61 @@ enum Mode {
   Trash = "Trash",
 }
 
-type View = Mode | string;
+type View = Mode | number;
 
 function App() {
   const [greetMsg, setGreetMsg] = useState("");
   const [name, setName] = useState("");
 
-  const [currentView, setCurrentView] = useState(Mode.Inbox);
-  const [tasks, setTasks] = useState([
-    {
-      inner_id: 12341,
-      title: "Work on tasksrus",
-    },
-    {
-      inner_id: 518283,
-      title: "Also do my job lol",
-    },
-  ]);
-
-  async function greet() {
-    // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-    setGreetMsg(await invoke("greet", { name }));
+  const [tasks, setTasks] = useState([]);
+  async function getCategoryTasks() {
+    setTasks(await invoke("get_category_tasks"));
   }
+
+  const [currentView, setCurrentView] = useState(Mode.Inbox);
+  const [contents, setContents] = useState(null);
 
   async function getTasks() {
-    console.log("Hello world!");
-    setTasks(await invoke("get_tasks"));
-    console.log(tasks);
+    setContents(await invoke("get_tasks", { view: currentView }));
   }
+
+  async function getTask() {
+    setContents(await invoke("get_task", { taskId: currentView }));
+  }
+
+  async function newTask() {
+    setTasks([
+      ...tasks,
+      await invoke("new_task"),
+    ]);
+  }
+
+  useEffect(() => {
+    setContents(null);
+
+    switch (currentView) {
+    case Mode.Inbox:
+    case Mode.Today:
+    case Mode.Upcoming:
+    case Mode.Anytime:
+    case Mode.Someday:
+    case Mode.Logbook:
+    case Mode.Trash:
+      getTasks()
+      break;
+
+    default:
+      getTask()
+      break;
+    }
+
+  }, [currentView])
+
+  useEffect(() => { getCategoryTasks() }, []);
 
   return (
     <div className="container">
-      <div className="task-list">
+      <div className="side-bar">
 	<div>
 	  <Category mode={Mode.Inbox} currentView={currentView} setCurrentView={setCurrentView} />
 
@@ -68,9 +91,10 @@ function App() {
 
           <div className="space-medium"></div>
 
-          <div>
+	  {/* TODO: make this fill only the available screen space, no matter the size of other elements */}
+          <div className="task-list">
             {tasks.map((task) =>
-              <Task
+              <CategoryTask
 		key={task.inner_id}
 		task={task}
 		currentView={currentView}
@@ -80,13 +104,14 @@ function App() {
           </div>
 	</div>
 
-	<div>
-          +
+	<div className="side-bar-bottom-bar">
+	  <div>{""}</div>
+	  <button className="add-task-button" onClick={newTask}>+</button>
 	</div>
       </div>
 
-      <div className="task-content">
-	blah
+      <div className="main-view">
+	<MainView contents={contents} view={currentView} />
       </div>
     </div>
   );
@@ -119,7 +144,7 @@ interface ITaskProps {
   setCurrentView: (View) => void,
 }
 
-function Task(props: ITaskProps) {
+function CategoryTask(props: ITaskProps) {
   // TODO: this text is not 100% centered in its block.
   // why is that? do we have to tune something about where the text sits relative to its "line"?
   return (
@@ -130,11 +155,56 @@ function Task(props: ITaskProps) {
 	})
       }
       onClick={(_) => {
-	console.log(props.currentView);
 	props.setCurrentView(props.task.inner_id)
       }}
     >
-      {props.task.title}
+      {props.task.title.length > 0
+	? props.task.title
+	: "Untitled Task"}
+    </div>
+  );
+}
+
+interface IMainViewProps {
+}
+
+function MainView(props: IMainViewProps) {
+  if (props.contents == null) {
+    return <LoadingView />
+  } else if (Array.isArray(props.contents)) {
+    return <TaskListView tasks={props.contents} />
+  } else if (typeof props.contents == "object") {
+    return <TaskView task={props.contents} />
+  } else {
+    throw Exception("cannot render for unknown type: " + typeof props.contents);
+  }
+}
+
+function LoadingView() {
+  return (
+    <div>...</div>
+  );
+}
+
+interface ITaskListViewProps {
+  tasks: [Task],
+}
+
+function TaskListView(props: ITaskListViewProps) {
+  return (
+    <div>Tasks</div>
+  );
+}
+
+interface ITaskViewProps {
+  task: Task,
+}
+
+function TaskView(props: ITaskViewProps) {
+  return (
+    <div>
+      <div>{ props.task.inner_id }</div>
+      <div>{ props.task.title }</div>
     </div>
   );
 }

@@ -4,7 +4,7 @@ use std::collections::BTreeMap;
 use std::collections::BTreeSet;
 use std::sync::Mutex;
 
-type TaskID = usize;
+pub type TaskID = usize;
 
 #[derive(Clone, Debug, Serialize)]
 pub struct Task {
@@ -27,9 +27,12 @@ impl Task {
 
 pub trait TaskDatabase: Send + Sync {
     fn new_task(&self) -> anyhow::Result<Task>;
+
     fn update_task(&self, task: &Task) -> anyhow::Result<()>;
     fn link_tasks(&self, from: &Task, to: &Task) -> anyhow::Result<()>;
     fn unlink_tasks(&self, from: &Task, to: &Task) -> anyhow::Result<()>;
+
+    fn get_task(&self, id: TaskID) -> anyhow::Result<Task>;
     fn root_tasks(&self) -> anyhow::Result<Vec<Task>>;
     fn children_tasks(&self, task: &Task) -> anyhow::Result<Vec<Task>>;
 }
@@ -128,6 +131,16 @@ impl TaskDatabase for MemoryDatabase {
         }
         task_set.links.get_mut(&from.id()).unwrap().remove(&to.id());
         Ok(())
+    }
+
+    fn get_task(&self, id: TaskID) -> anyhow::Result<Task> {
+	let task_set = self.task_set.lock().unwrap();
+
+	if !task_set.tasks.contains_key(&id) {
+	    return Err(anyhow!("Missing ID: {}", id));
+	}
+
+	Ok(task_set.tasks.get(&id).unwrap().clone())
     }
 
     fn root_tasks(&self) -> anyhow::Result<Vec<Task>> {
