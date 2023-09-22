@@ -33,6 +33,11 @@
     border-radius: 0.4rem;
 }
 
+.task-empty-title {
+    color: var(--foreground-lowlight);
+    font-style: italic;
+}
+
 .task-selected {
     background-color: var(--background);
 }

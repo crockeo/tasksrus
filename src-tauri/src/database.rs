@@ -134,13 +134,13 @@ impl TaskDatabase for MemoryDatabase {
     }
 
     fn get_task(&self, id: TaskID) -> anyhow::Result<Task> {
-	let task_set = self.task_set.lock().unwrap();
+        let task_set = self.task_set.lock().unwrap();
 
-	if !task_set.tasks.contains_key(&id) {
-	    return Err(anyhow!("Missing ID: {}", id));
-	}
+        if !task_set.tasks.contains_key(&id) {
+            return Err(anyhow!("Missing ID: {}", id));
+        }
 
-	Ok(task_set.tasks.get(&id).unwrap().clone())
+        Ok(task_set.tasks.get(&id).unwrap().clone())
     }
 
     fn root_tasks(&self) -> anyhow::Result<Vec<Task>> {

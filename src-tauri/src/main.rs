@@ -13,11 +13,11 @@ fn main() {
     tauri::Builder::default()
         .manage(Database::new())
         .invoke_handler(tauri::generate_handler![
-	    get_category_tasks,
-	    get_task,
-	    get_tasks,
-	    new_task,
-	])
+            get_category_tasks,
+            get_task,
+            get_tasks,
+            new_task,
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

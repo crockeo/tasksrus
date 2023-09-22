@@ -1,5 +1,6 @@
 :root {
     --foreground: #2f2f2f;
+    --foreground-lowlight: #404040;
     /* TODO: make this a real color */
     --background-highlight: #ff0000;
     --background: #f6f6f6;
@@ -9,11 +10,12 @@
 
 @media (prefers-color-scheme: dark) {
     :root {
-	--foreground: #f6f6f6;
-	--background-highlight: #383838;
-	--background: #2f2f2f;
-	--background-75: #212121;
-	--background-50: #171717;
+        --foreground: #f6f6f6;
+        --foreground-lowlight: #d9d9d9;
+        --background-highlight: #383838;
+        --background: #2f2f2f;
+        --background-75: #212121;
+        --background-50: #171717;
     }
 }
 
