@@ -17,6 +17,7 @@ fn main() {
             get_task,
             get_tasks,
             new_task,
+            update_task,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -40,4 +41,9 @@ fn get_tasks(state: tauri::State<Database>) -> Vec<Task> {
 #[tauri::command]
 fn new_task(state: tauri::State<Database>) -> Task {
     state.inner().new_task().unwrap()
+}
+
+#[tauri::command]
+fn update_task(state: tauri::State<Database>, task: Task) {
+    state.update_task(&task).expect("Failed to update task...")
 }

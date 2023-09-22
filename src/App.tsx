@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
-import reactLogo from "./assets/react.svg";
 import { invoke } from "@tauri-apps/api/tauri";
-import "./App.css";
 import classNames from "classnames";
+import { useDebounce } from "usehooks-ts";
+
+import "./App.css";
+import reactLogo from "./assets/react.svg";
+
 
 interface Task {
   inner_id: number
@@ -167,13 +170,15 @@ function CategoryTask(props: ITaskProps) {
 }
 
 interface IMainViewProps {
+  contents: Array<Task> | Task,
+  view: View,
 }
 
 function MainView(props: IMainViewProps) {
   if (props.contents == null) {
     return <LoadingView />
   } else if (Array.isArray(props.contents)) {
-    return <TaskListView tasks={props.contents} />
+    return <TaskListView tasks={props.contents} view={props.view} />
   } else if (typeof props.contents == "object") {
     return <TaskView task={props.contents} />
   } else {
@@ -189,11 +194,15 @@ function LoadingView() {
 
 interface ITaskListViewProps {
   tasks: [Task],
+  view: View,
 }
 
 function TaskListView(props: ITaskListViewProps) {
   return (
-    <div>Tasks</div>
+    <div>
+      <div>{ props.view }</div>
+      <div>Tasks</div>
+    </div>
   );
 }
 
@@ -202,8 +211,24 @@ interface ITaskViewProps {
 }
 
 function TaskView(props: ITaskViewProps) {
+  const [title, setTitle] = useState(props.task.title);
+  const debouncedTitle = useDebounce(title, 250);
+
+  useEffect(() => {
+    console.log("updating w/ debounced...");
+    props.task.title = debouncedTitle;
+    invoke("update_task", {task: props.task});
+  }, [debouncedTitle]);
+
   return (
     <div>
+      <input
+        className="title-input"
+        onChange={(e) => setTitle(e.target.value)}
+        onBlur={(e) => updateTask()}
+        placeholder="Enter task title" value={title}
+      />
+
       <div>{ props.task.inner_id }</div>
       <div>{ props.task.title }</div>
     </div>

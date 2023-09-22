@@ -1,4 +1,5 @@
 use anyhow::anyhow;
+use serde::Deserialize;
 use serde::Serialize;
 use std::collections::BTreeMap;
 use std::collections::BTreeSet;
@@ -6,7 +7,7 @@ use std::sync::Mutex;
 
 pub type TaskID = usize;
 
-#[derive(Clone, Debug, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Task {
     inner_id: TaskID,
     pub title: String,

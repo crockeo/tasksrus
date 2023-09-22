@@ -80,3 +80,8 @@
     box-shadow: none;
     margin-top: 0.2rem;
 }
+
+.title-input {
+    font-size: 2rem;
+    width: 100%;
+}

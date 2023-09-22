@@ -36,6 +36,19 @@
     -webkit-text-size-adjust: 100%;
 }
 
+input {
+    background-color: var(--background-50);
+    border-style: none;
+    color: var(--foregound);
+    margin: 0px;
+    padding: 1rem;
+}
+
+input::placeholder {
+    color: var(--foreground-lowlight);
+    font-style: italic;
+}
+
 body {
     margin: 0;
 }
