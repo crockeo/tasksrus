@@ -225,7 +225,6 @@ function TaskView(props: ITaskViewProps) {
       <input
         className="title-input"
         onChange={(e) => setTitle(e.target.value)}
-        onBlur={(e) => updateTask()}
         placeholder="Enter task title" value={title}
       />
 
