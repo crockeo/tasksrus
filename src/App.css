@@ -1,10 +1,11 @@
 .side-bar {
     background-color: var(--background-75);
+    box-sizing: border-box;
     display: flex;
     flex-direction: column;
     grid-column: 1 / 1;
     padding: 0.7rem;
-    height: calc(100vh - 1.4rem);
+    height: 100vh;
 }
 
 .main-view {
@@ -29,7 +30,7 @@
 .task {
     cursor: pointer;
     padding: 0.2rem 0.4rem;
-    border-radius: 0.4rem;
+    border-radius: 0.5rem;
 }
 
 .task-empty-title {
@@ -85,6 +86,7 @@
 }
 
 .title-input {
+    box-sizing: border-box;
     font-size: 2rem;
     flex: 1;
     width: 100%;

@@ -25,6 +25,7 @@
     height: 100vh;
     margin: 0;
     overflow: hidden;
+    width: 100vw;
 
     font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
     font-size: 14px;
@@ -42,6 +43,7 @@ input {
     color: var(--foregound);
     margin: 0px;
     padding: 1rem;
+    max-width: 100%;
 }
 
 input::placeholder {
