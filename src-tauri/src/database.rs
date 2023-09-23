@@ -5,6 +5,7 @@ use rusqlite::Row;
 use std::path::Path;
 use std::sync::Mutex;
 
+#[derive(Debug, Eq, PartialEq)]
 pub struct Task {
     id: i64,
     pub title: String,
@@ -19,6 +20,7 @@ impl Task {
     }
 }
 
+#[derive(Debug, Eq, PartialEq)]
 pub enum Scheduled {
     Anytime,
     Someday,
@@ -172,4 +174,48 @@ fn today_iso_8601() -> String {
     let today = Local::now().naive_local().date();
     let today_iso_8601 = today.format("%Y-%m-%d").to_string();
     today_iso_8601
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use tempdir::TempDir;
+
+    struct TempDatabase {
+        temp_dir: TempDir,
+        database_handle: Database,
+    }
+
+    impl TempDatabase {
+        fn new() -> anyhow::Result<Self> {
+            let temp_dir = TempDir::new("tasksrus-database-test")?;
+            let database = Database::open(temp_dir.path().join("database.sqlite"))?;
+            Ok(Self {
+                temp_dir,
+                database_handle: database,
+            })
+        }
+
+        fn database(&self) -> &Database {
+            &self.database_handle
+        }
+    }
+
+    #[test]
+    fn test_new_task() -> anyhow::Result<()> {
+        let temp_database = TempDatabase::new()?;
+        let task = temp_database.database().new_task()?;
+        assert_eq!(
+            task,
+            Task {
+                id: 1,
+                title: "".into(),
+                description: "".into(),
+                scheduled: Scheduled::Anytime,
+                completed: None,
+            },
+        );
+        Ok(())
+    }
 }
