@@ -77,35 +77,34 @@ function App() {
   return (
     <div className="container">
       <div className="side-bar">
-        <div>
-          <Category mode={Mode.Inbox} currentView={currentView} setCurrentView={setCurrentView} />
+        <Category mode={Mode.Inbox} currentView={currentView} setCurrentView={setCurrentView} />
 
-          <div className="space-small"></div>
+        <div className="space-small"></div>
 
-          <Category mode={Mode.Today} currentView={currentView} setCurrentView={setCurrentView} />
-          <Category mode={Mode.Upcoming} currentView={currentView} setCurrentView={setCurrentView} />
-          <Category mode={Mode.Anytime} currentView={currentView} setCurrentView={setCurrentView} />
-          <Category mode={Mode.Someday} currentView={currentView} setCurrentView={setCurrentView} />
+        <Category mode={Mode.Today} currentView={currentView} setCurrentView={setCurrentView} />
+        <Category mode={Mode.Upcoming} currentView={currentView} setCurrentView={setCurrentView} />
+        <Category mode={Mode.Anytime} currentView={currentView} setCurrentView={setCurrentView} />
+        <Category mode={Mode.Someday} currentView={currentView} setCurrentView={setCurrentView} />
 
-          <div className="space-small"></div>
+        <div className="space-small"></div>
 
-          <Category mode={Mode.Logbook} currentView={currentView} setCurrentView={setCurrentView} />
-          <Category mode={Mode.Trash} currentView={currentView} setCurrentView={setCurrentView} />
+        <Category mode={Mode.Logbook} currentView={currentView} setCurrentView={setCurrentView} />
+        <Category mode={Mode.Trash} currentView={currentView} setCurrentView={setCurrentView} />
 
-          <div className="space-medium"></div>
+        <div className="space-small"></div>
 
-          {/* TODO: make this fill only the available screen space, no matter the size of other elements */}
-          <div className="task-list">
-            {tasks.map((task) =>
-              <CategoryTask
-        key={task.inner_id}
-        task={task}
-        currentView={currentView}
-        setCurrentView={setCurrentView}
-              />
-            )}
-          </div>
+        <div className="task-list">
+          {tasks.map((task) =>
+            <CategoryTask
+              key={task.inner_id}
+              task={task}
+              currentView={currentView}
+              setCurrentView={setCurrentView}
+            />
+          )}
         </div>
+
+        <div className="space-small"></div>
 
         <div className="side-bar-bottom-bar">
           <div>{""}</div>
@@ -221,7 +220,7 @@ function TaskView(props: ITaskViewProps) {
   }, [debouncedTitle]);
 
   return (
-    <div>
+    <div className="task-view">
       <input
         className="title-input"
         onChange={(e) => setTitle(e.target.value)}
