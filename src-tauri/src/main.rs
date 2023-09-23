@@ -2,6 +2,8 @@
 
 mod database;
 
+use crate::database::Database;
+
 // use crate::database::MemoryDatabase;
 // use crate::database::Task;
 // use crate::database::TaskDatabase;
@@ -12,9 +14,10 @@ mod database;
 
 // type Database = MemoryDatabase;
 
-fn main() {
+fn main() -> anyhow::Result<()> {
+    let database = Database::open("database.sqlite")?;
     tauri::Builder::default()
-        .manage(Database::new())
+        .manage(database)
         .invoke_handler(tauri::generate_handler![
             // get_tasks_for_mode,
             // get_root_tasks,
@@ -23,8 +26,9 @@ fn main() {
             // new_task,
             // update_task,
         ])
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .run(tauri::generate_context!())?;
+
+    Ok(())
 }
 
 // #[tauri::command]
