@@ -218,4 +218,15 @@ mod tests {
         );
         Ok(())
     }
+
+    #[test]
+    fn test_inbox() -> anyhow::Result<()> {
+        let temp_database = TempDatabase::new()?;
+        let task = temp_database.database().new_task()?;
+        let inbox_tasks = temp_database.database().inbox()?;
+
+        assert_eq!(inbox_tasks.len(), 1);
+        assert_eq!(task, inbox_tasks[0]);
+        Ok(())
+    }
 }
