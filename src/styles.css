@@ -11,7 +11,7 @@
 @media (prefers-color-scheme: dark) {
     :root {
         --foreground: #f6f6f6;
-        --foreground-lowlight: #d9d9d9;
+        --foreground-lowlight: #b3b3b3;
         --background-highlight: #383838;
         --background: #2f2f2f;
         --background-75: #212121;
@@ -38,17 +38,34 @@
 }
 
 input {
-    background-color: var(--background-50);
+    background-color: var(--background);
     border-style: none;
     color: var(--foregound);
-    margin: 0px;
-    padding: 1rem;
+    margin: 1rem;
     max-width: 100%;
+}
+
+input:focus {
+    outline: none;
 }
 
 input::placeholder {
     color: var(--foreground-lowlight);
-    font-style: italic;
+}
+
+textarea {
+    background-color: var(--background-75);
+    border-radius: 0.5rem;
+    border: none;
+    color: var(--foreground);
+    font-size: 1rem;
+    margin: 1rem;
+    padding: 1rem;
+    resize: none;
+}
+
+textarea:focus {
+    outline: none;
 }
 
 body {

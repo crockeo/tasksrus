@@ -5,43 +5,8 @@ import { useDebounce } from "usehooks-ts";
 
 import "./App.css";
 import reactLogo from "./assets/react.svg";
-
-
-interface Task {
-  id: number,
-  title: string,
-  description: string,
-  scheduled: string,
-  completed: string | null,
-}
-
-enum Mode {
-  Inbox = "Inbox",
-  Today = "Today",
-  Upcoming = "Upcoming",
-  Anytime = "Anytime",
-  Someday = "Someday",
-  Logbook = "Logbook",
-  Trash = "Trash",
-}
-
-type View = Mode | number;
-
-function isMode(view: View): bool {
-  switch (view) {
-    case Mode.Inbox:
-    case Mode.Today:
-    case Mode.Upcoming:
-    case Mode.Anytime:
-    case Mode.Someday:
-    case Mode.Logbook:
-    case Mode.Trash:
-      return true;
-
-    default:
-      return false;
-  }
-}
+import { Task, Mode, View, isMode } from "./types.ts";
+import TaskView from "./TaskView.tsx";
 
 function App() {
   const [greetMsg, setGreetMsg] = useState("");
@@ -166,6 +131,7 @@ function MainView(props: IMainViewProps) {
   let [task, setTask] = useState(null);
 
   useEffect(() => {
+    console.log("reevaluating...");
     if (isMode(props.view)) {
       (async () => {
         setTasks(await invoke("get_tasks_for_view", {view: props.view}));
@@ -176,6 +142,15 @@ function MainView(props: IMainViewProps) {
       })();
     }
   }, [props.view]);
+
+  useEffect(() => {
+    if (task == null) {
+      return;
+    }
+    (async () => {
+      await invoke("update_task", {task: task});
+    })();
+  }, [task])
 
   function isLoading(): bool {
     if (isMode(props.view)) {
@@ -189,7 +164,12 @@ function MainView(props: IMainViewProps) {
   } else if (isMode(props.view)) {
     return <TaskListView tasks={tasks} />
   } else {
-    return <TaskView task={task} setTask={setTask} />
+    return (
+      <TaskView
+        task={task}
+        setTask={setTask}
+      />
+    );
   }
 }
 
@@ -211,37 +191,6 @@ function TaskListView(props: ITaskListViewProps) {
           {JSON.stringify(task)}
         </div>
       )}
-    </div>
-  );
-}
-
-interface ITaskViewProps {
-  task: Task,
-}
-
-function TaskView(props: ITaskViewProps) {
-  const [title, setTitle] = useState(props.task.title);
-  const debouncedTitle = useDebounce(title, 250);
-
-  useEffect(() => {
-    let newTask = {
-      ...props.task,
-      title: debouncedTitle,
-    };
-    props.setTask(newTask);
-    invoke("update_task", {task: newTask});
-  }, [debouncedTitle]);
-
-  return (
-    <div className="task-view">
-      <input
-        className="title-input"
-        onChange={(e) => setTitle(e.target.value)}
-        placeholder="Enter task title" value={title}
-      />
-
-      <div>{ props.task.id }</div>
-      <div>{ props.task.title }</div>
     </div>
   );
 }
