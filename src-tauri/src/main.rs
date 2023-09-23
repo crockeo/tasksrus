@@ -23,6 +23,7 @@ fn main() -> anyhow::Result<()> {
             new_task,
             get_task,
             update_task,
+            search,
         ])
         .run(tauri::generate_context!())?;
 
@@ -84,6 +85,11 @@ fn get_task(database: State<Database>, id: TaskID) -> Result<GetTaskResponse, Er
 #[tauri::command]
 fn update_task(database: State<Database>, task: Task) -> Result<(), Error> {
     Ok(database.update_task(&task)?)
+}
+
+#[tauri::command]
+fn search(database: State<Database>, input: String) -> Result<Vec<Task>, Error> {
+    Ok(database.search(&input)?)
 }
 
 pub enum Error {

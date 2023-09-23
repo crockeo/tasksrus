@@ -42,7 +42,6 @@ input {
     background-color: var(--background);
     border-style: none;
     color: var(--foregound);
-    margin: 0.5rem;
     max-width: 100%;
 }
 

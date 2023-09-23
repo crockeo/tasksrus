@@ -27,3 +27,10 @@
     margin: auto;
     padding: 1rem;
 }
+
+.search-input {
+    display: block;
+    background: var(--background-75);
+    padding: 0.8rem;
+    border-radius: 0.8rem;
+}

@@ -1,4 +1,7 @@
 import classNames from "classnames";
+import { invoke } from "@tauri-apps/api/tauri";
+import { useDebounce } from "usehooks-ts";
+import { useEffect, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
 import "./SearchView.css";
@@ -9,9 +12,23 @@ export interface ISearchViewProps {
 }
 
 function SearchView(props: ISearchViewProps) {
+  let [input, setInput] = useState("");
+  let [tasks, setTasks] = useState([]);
+
   useHotkeys("esc", () => {
     props.setShown(false);
   });
+
+  useEffect(() => {
+    (async () => {
+      if (input.length == 0) {
+        setTasks([]);
+        return;
+      }
+      let searchedTasks = await invoke("search", {input: input});
+      setTasks(searchedTasks);
+    })();
+  }, [input]);
 
   return (
     <div
@@ -21,7 +38,19 @@ function SearchView(props: ISearchViewProps) {
       onClick={(_) => props.setShown(false)}
     >
       <div className="search-area" onClick={(e) => {e.stopPropagation()}}>
-        here is some content??
+        <input
+          className="search-input"
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="Task title"
+          type="text"
+          value={input}
+        />
+
+        <div className="search-output">
+          {tasks.map((task, i) =>
+            <div>{task.title}</div>
+          )}
+        </div>
       </div>
     </div>
   );

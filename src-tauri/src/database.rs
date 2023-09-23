@@ -248,7 +248,13 @@ impl Database {
     }
 
     pub fn search(&self, token: &str) -> anyhow::Result<Vec<Task>> {
-        todo!()
+        // TODO: this is a very naive and very unfriendly search implementation. fix me!
+        let conn = self.conn.lock().unwrap();
+
+        let mut statement = conn.prepare(include_str!("sql/queries/search.sql"))?;
+        let rows = statement.query((format!("%{token}%"),))?;
+
+        Task::from_rows(rows)
     }
 }
 
