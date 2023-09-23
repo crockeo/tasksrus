@@ -27,6 +27,22 @@ enum Mode {
 
 type View = Mode | number;
 
+function isMode(view: View): bool {
+  switch (view) {
+    case Mode.Inbox:
+    case Mode.Today:
+    case Mode.Upcoming:
+    case Mode.Anytime:
+    case Mode.Someday:
+    case Mode.Logbook:
+    case Mode.Trash:
+      return true;
+
+    default:
+      return false;
+  }
+}
+
 function App() {
   const [greetMsg, setGreetMsg] = useState("");
   const [name, setName] = useState("");
@@ -39,7 +55,6 @@ function App() {
   }, []);
 
   const [currentView, setCurrentView] = useState(Mode.Inbox);
-  const [contents, setContents] = useState(null);
 
   async function newTask() {
     setTasks([
@@ -47,31 +62,6 @@ function App() {
       await invoke("new_task"),
     ]);
   }
-
-  useEffect(() => {
-    setContents(null);
-
-    switch (currentView) {
-    case Mode.Inbox:
-    case Mode.Today:
-    case Mode.Upcoming:
-    case Mode.Anytime:
-    case Mode.Someday:
-    case Mode.Logbook:
-    case Mode.Trash:
-      (async () => {
-        setContents(await invoke("get_tasks_for_view", {view: currentView}));
-      })();
-      break;
-
-    default:
-      (async () => {
-        setContents(await invoke("get_task", {id: currentView}));
-      })();
-      break;
-    }
-
-  }, [currentView])
 
   return (
     <div className="container">
@@ -112,7 +102,7 @@ function App() {
       </div>
 
       <div className="main-view">
-        <MainView contents={contents} view={currentView} />
+        <MainView view={currentView} />
       </div>
     </div>
   );
@@ -139,13 +129,13 @@ function Category(props: ICategoryProps) {
   );
 }
 
-interface ITaskProps {
+interface ICategoryTaskProps {
   task: Task,
   currentView: View,
   setCurrentView: (View) => void,
 }
 
-function CategoryTask(props: ITaskProps) {
+function CategoryTask(props: ICategoryTaskProps) {
   // TODO: this text is not 100% centered in its block.
   // why is that? do we have to tune something about where the text sits relative to its "line"?
   return (
@@ -168,19 +158,38 @@ function CategoryTask(props: ITaskProps) {
 }
 
 interface IMainViewProps {
-  contents: Array<Task> | Task,
   view: View,
 }
 
 function MainView(props: IMainViewProps) {
-  if (props.contents == null) {
+  let [tasks, setTasks] = useState(null);
+  let [task, setTask] = useState(null);
+
+  useEffect(() => {
+    if (isMode(props.view)) {
+      (async () => {
+        setTasks(await invoke("get_tasks_for_view", {view: props.view}));
+      })();
+    } else {
+      (async () => {
+        setTask(await invoke("get_task", {id: props.view}));
+      })();
+    }
+  }, [props.view]);
+
+  function isLoading(): bool {
+    if (isMode(props.view)) {
+      return tasks == null;
+    }
+    return task == null;
+  }
+
+  if (isLoading()) {
     return <LoadingView />
-  } else if (Array.isArray(props.contents)) {
-    return <TaskListView tasks={props.contents} view={props.view} />
-  } else if (typeof props.contents == "object") {
-    return <TaskView task={props.contents} />
+  } else if (isMode(props.view)) {
+    return <TaskListView tasks={tasks} />
   } else {
-    throw Exception("cannot render for unknown type: " + typeof props.contents);
+    return <TaskView task={task} setTask={setTask} />
   }
 }
 
@@ -192,14 +201,16 @@ function LoadingView() {
 
 interface ITaskListViewProps {
   tasks: [Task],
-  view: View,
 }
 
 function TaskListView(props: ITaskListViewProps) {
   return (
     <div>
-      <div>{ props.view }</div>
-      <div>Tasks</div>
+      {props.tasks.map((task, i) =>
+        <div key={i}>
+          {JSON.stringify(task)}
+        </div>
+      )}
     </div>
   );
 }
@@ -213,8 +224,12 @@ function TaskView(props: ITaskViewProps) {
   const debouncedTitle = useDebounce(title, 250);
 
   useEffect(() => {
-    props.task.title = debouncedTitle;
-    invoke("update_task", {task: props.task});
+    let newTask = {
+      ...props.task,
+      title: debouncedTitle,
+    };
+    props.setTask(newTask);
+    invoke("update_task", {task: newTask});
   }, [debouncedTitle]);
 
   return (

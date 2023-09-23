@@ -7,10 +7,11 @@ use serde::Serialize;
 use std::path::Path;
 use std::str::FromStr;
 use std::sync::Mutex;
+use serde::Deserialize;
 
 pub type TaskID = i64;
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Task {
     id: TaskID,
     pub title: String,
@@ -49,7 +50,7 @@ impl Task {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub enum Scheduled {
     Anytime,
     Someday,

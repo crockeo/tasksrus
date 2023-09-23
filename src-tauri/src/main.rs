@@ -21,6 +21,7 @@ fn main() -> anyhow::Result<()> {
             get_root_tasks,
             new_task,
             get_task,
+            update_task,
         ])
         .run(tauri::generate_context!())?;
 
@@ -63,6 +64,11 @@ fn new_task(database: State<Database>) -> Result<Task, Error> {
 #[tauri::command]
 fn get_task(database: State<Database>, id: TaskID) -> Result<Task, Error> {
     Ok(database.get_task(id)?)
+}
+
+#[tauri::command]
+fn update_task(database: State<Database>, task: Task) -> Result<(), Error> {
+    Ok(database.update_task(&task)?)
 }
 
 pub enum Error {
