@@ -214,7 +214,6 @@ function TaskView(props: ITaskViewProps) {
   const debouncedTitle = useDebounce(title, 250);
 
   useEffect(() => {
-    console.log("updating w/ debounced...");
     props.task.title = debouncedTitle;
     invoke("update_task", {task: props.task});
   }, [debouncedTitle]);
