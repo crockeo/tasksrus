@@ -19,7 +19,15 @@ pub struct Task {
 }
 
 impl Task {
-    fn extract_from_row(row: &Row<'_>) -> anyhow::Result<Self> {
+    fn from_rows(mut rows: rusqlite::Rows<'_>) -> anyhow::Result<Vec<Self>> {
+        let mut tasks = vec![];
+        while let Some(row) = rows.next()? {
+            tasks.push(Self::from_row(row)?);
+        }
+        Ok(tasks)
+    }
+
+    fn from_row(row: &Row<'_>) -> anyhow::Result<Self> {
         let scheduled_str: String = row.get("scheduled")?;
         let scheduled = Scheduled::from_str(&scheduled_str)?;
 
@@ -111,10 +119,10 @@ impl Database {
         let conn = self.conn.lock().unwrap();
 
         let mut statement = conn.prepare("SELECT * FROM tasks WHERE id = ?")?;
-        let mut rows = statement.query((id,))?;
+        let rows = statement.query((id,))?;
 
         while let Some(row) = rows.next()? {
-            return Task::extract_from_row(row);
+            return Task::from_row(row);
         }
 
         return Err(anyhow!("No such task with ID: {}", id));
@@ -157,84 +165,54 @@ impl Database {
         let conn = self.conn.lock().unwrap();
 
         let mut statement = conn.prepare(include_str!("sql/queries/inbox.sql"))?;
-        let mut rows = statement.query(())?;
+        let rows = statement.query(())?;
 
-        let mut tasks = vec![];
-        while let Some(row) = rows.next()? {
-            tasks.push(Task::extract_from_row(row)?);
-        }
-
-        Ok(tasks)
+        Task::from_rows(rows)
     }
 
     pub fn today(&self) -> anyhow::Result<Vec<Task>> {
         let conn = self.conn.lock().unwrap();
 
         let mut statement = conn.prepare(include_str!("sql/queries/today.sql"))?;
-        let mut rows = statement.query((today().format(ISO_8601_FMT).to_string(),))?;
+        let rows = statement.query((today().format(ISO_8601_FMT).to_string(),))?;
 
-        let mut tasks = vec![];
-        while let Some(row) = rows.next()? {
-            tasks.push(Task::extract_from_row(row)?);
-        }
-
-        Ok(tasks)
+        Task::from_rows(rows)
     }
 
     pub fn upcoming(&self) -> anyhow::Result<Vec<Task>> {
         let conn = self.conn.lock().unwrap();
 
         let mut statement = conn.prepare(include_str!("sql/queries/upcoming.sql"))?;
-        let mut rows = statement.query((today().format(ISO_8601_FMT).to_string(),))?;
+        let rows = statement.query((today().format(ISO_8601_FMT).to_string(),))?;
 
-        let mut tasks = vec![];
-        while let Some(row) = rows.next()? {
-            tasks.push(Task::extract_from_row(row)?);
-        }
-
-        Ok(tasks)
+        Task::from_rows(rows)
     }
 
     pub fn anytime(&self) -> anyhow::Result<Vec<Task>> {
         let conn = self.conn.lock().unwrap();
 
         let mut statement = conn.prepare(include_str!("sql/queries/anytime.sql"))?;
-        let mut rows = statement.query(())?;
+        let rows = statement.query(())?;
 
-        let mut tasks = vec![];
-        while let Some(row) = rows.next()? {
-            tasks.push(Task::extract_from_row(row)?);
-        }
-
-        Ok(tasks)
+        Task::from_rows(rows)
     }
 
     pub fn someday(&self) -> anyhow::Result<Vec<Task>> {
         let conn = self.conn.lock().unwrap();
 
         let mut statement = conn.prepare(include_str!("sql/queries/someday.sql"))?;
-        let mut rows = statement.query(())?;
+        let rows = statement.query(())?;
 
-        let mut tasks = vec![];
-        while let Some(row) = rows.next()? {
-            tasks.push(Task::extract_from_row(row)?);
-        }
-
-        Ok(tasks)
+        Task::from_rows(rows)
     }
 
     pub fn logbook(&self) -> anyhow::Result<Vec<Task>> {
         let conn = self.conn.lock().unwrap();
 
         let mut statement = conn.prepare(include_str!("sql/queries/logbook.sql"))?;
-        let mut rows = statement.query(())?;
+        let rows = statement.query(())?;
 
-        let mut tasks = vec![];
-        while let Some(row) = rows.next()? {
-            tasks.push(Task::extract_from_row(row)?);
-        }
-
-        Ok(tasks)
+        Task::from_rows(rows)
     }
 
     pub fn root_tasks(&self) -> anyhow::Result<Vec<Task>> {
@@ -243,22 +221,31 @@ impl Database {
         let mut statement = conn.prepare(
             "SELECT * FROM tasks WHERE NOT EXISTS (SELECT * FROM links WHERE links.to_id = tasks.id)",
         )?;
-        let mut rows = statement.query(())?;
+        let rows = statement.query(())?;
 
-        let mut tasks = vec![];
-        while let Some(row) = rows.next()? {
-            tasks.push(Task::extract_from_row(row)?);
-        }
-
-        Ok(tasks)
+        Task::from_rows(rows)
     }
 
     pub fn parents(&self, task: &Task) -> anyhow::Result<Vec<Task>> {
-        todo!()
+        let conn = self.conn.lock().unwrap();
+
+        let mut statement = conn.prepare(
+            "SELECT tasks.* FROM tasks INNER JOIN links ON links.to_id = tasks.id",
+        )?;
+        let rows = statement.query(())?;
+
+        Task::from_rows(rows)
     }
 
     pub fn children(&self, task: &Task) -> anyhow::Result<Vec<Task>> {
-        todo!()
+        let conn = self.conn.lock().unwrap();
+
+        let mut statement = conn.prepare(
+            "SELECT tasks.* FROM tasks INNER JOIN links ON links.from_id = tasks.id",
+        )?;
+        let rows = statement.query(())?;
+
+        Task::from_rows(rows)
     }
 
     pub fn search(&self, token: &str) -> anyhow::Result<Vec<Task>> {
