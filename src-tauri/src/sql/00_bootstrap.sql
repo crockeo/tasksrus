@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS tasks (
        id INTEGER PRIMARY KEY,
        title TEXT NOT NULL,
        description TEXT NOT NULL,
-       scheduled TEXT -- ISO 8601 encoded timezone-naive date.
+       scheduled TEXT NOT NULL -- One of: `anytime`, `oneday`, or ISO 8601 encoded timezone-naive date.
 );
 
 CREATE TABLE IF NOT EXISTS links (

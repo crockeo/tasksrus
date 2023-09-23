@@ -9,12 +9,29 @@ pub struct Task {
     id: i64,
     pub title: String,
     pub description: String,
-    pub scheduled: Option<NaiveDate>,
+    pub scheduled: Scheduled,
 }
 
 impl Task {
     fn extract_from_row(row: &Row<'_>) -> anyhow::Result<Self> {
         todo!()
+    }
+}
+
+pub enum Scheduled {
+    Anytime,
+    Someday,
+    Day(NaiveDate),
+}
+
+impl ToString for Scheduled {
+    fn to_string(&self) -> String {
+        use Scheduled::*;
+        match self {
+            Anytime => "anytime".into(),
+            Someday => "someday".into(),
+            Day(date) => date.format("%Y-%m-%d").to_string(),
+        }
     }
 }
 
@@ -48,7 +65,7 @@ impl Database {
             id,
             title: "".into(),
             description: "".into(),
-            scheduled: None,
+            scheduled: Scheduled::Anytime,
         })
     }
 
@@ -83,7 +100,7 @@ impl Database {
     pub fn upcoming(&self) -> anyhow::Result<Vec<Task>> {
         let conn = self.conn.lock().unwrap();
 
-        let mut statement = conn.prepare(include_str!("sql/queries/today.sql"))?;
+        let mut statement = conn.prepare(include_str!("sql/queries/upcoming.sql"))?;
         let mut rows = statement.query((today_iso_8601(),))?;
 
         let mut tasks = vec![];
@@ -95,11 +112,31 @@ impl Database {
     }
 
     pub fn anytime(&self) -> anyhow::Result<Vec<Task>> {
-        todo!()
+        let conn = self.conn.lock().unwrap();
+
+        let mut statement = conn.prepare(include_str!("sql/queries/anytime.sql"))?;
+        let mut rows = statement.query(())?;
+
+        let mut tasks = vec![];
+        while let Some(row) = rows.next()? {
+            tasks.push(Task::extract_from_row(row)?);
+        }
+
+        Ok(tasks)
     }
 
     pub fn someday(&self) -> anyhow::Result<Vec<Task>> {
-        todo!()
+        let conn = self.conn.lock().unwrap();
+
+        let mut statement = conn.prepare(include_str!("sql/queries/someday.sql"))?;
+        let mut rows = statement.query(())?;
+
+        let mut tasks = vec![];
+        while let Some(row) = rows.next()? {
+            tasks.push(Task::extract_from_row(row)?);
+        }
+
+        Ok(tasks)
     }
 
     pub fn logbook(&self) -> anyhow::Result<Vec<Task>> {

@@ -5,5 +5,5 @@ INSERT INTO tasks (
 ) VALUES (
        '',
        '',
-       NULL
+       'anytime',
 );
