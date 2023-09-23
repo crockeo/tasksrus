@@ -19,6 +19,28 @@ function App() {
     })();
   }, []);
 
+  function updateTask(task: Task) {
+    let i;
+    for (i = 0; i < tasks.length; i++) {
+      if (task.id == tasks[i].id) {
+        break;
+      }
+    }
+    if (i == tasks.length) {
+      // That means we're editing a task which is not present in the task list,
+      // so we don't need to update it.
+      return;
+    }
+
+    setTasks([
+      ...tasks.slice(0, i),
+      task,
+      ...tasks.slice(i + 1, tasks.length),
+    ]);
+  }
+
+  updateTask({});
+
   const [currentView, setCurrentView] = useState(Mode.Inbox);
 
   async function newTask() {
@@ -67,7 +89,7 @@ function App() {
       </div>
 
       <div className="main-view">
-        <MainView view={currentView} />
+        <MainView updateTask={updateTask} view={currentView} />
       </div>
     </div>
   );
@@ -123,6 +145,7 @@ function CategoryTask(props: ICategoryTaskProps) {
 }
 
 interface IMainViewProps {
+  updateTask: (Task) => any,
   view: View,
 }
 
@@ -131,7 +154,6 @@ function MainView(props: IMainViewProps) {
   let [task, setTask] = useState(null);
 
   useEffect(() => {
-    console.log("reevaluating...");
     if (isMode(props.view)) {
       (async () => {
         setTasks(await invoke("get_tasks_for_view", {view: props.view}));
@@ -148,6 +170,7 @@ function MainView(props: IMainViewProps) {
       return;
     }
     (async () => {
+      props.updateTask(task);
       await invoke("update_task", {task: task});
     })();
   }, [task])
