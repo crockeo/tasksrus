@@ -29,9 +29,11 @@ function App() {
   const [name, setName] = useState("");
 
   const [tasks, setTasks] = useState([]);
-  async function getCategoryTasks() {
-    setTasks(await invoke("get_category_tasks"));
-  }
+  useEffect(() => {
+    (async () => {
+      setTasks(await invoke("get_root_tasks"));
+    })();
+  });
 
   const [currentView, setCurrentView] = useState(Mode.Inbox);
   const [contents, setContents] = useState(null);
@@ -62,7 +64,9 @@ function App() {
     case Mode.Someday:
     case Mode.Logbook:
     case Mode.Trash:
-      getTasks()
+      (async () => {
+        setContents(await invoke("get_tasks_for_mode", {mode: currentView}));
+      })();
       break;
 
     default:
@@ -71,8 +75,6 @@ function App() {
     }
 
   }, [currentView])
-
-  useEffect(() => { getCategoryTasks() }, []);
 
   return (
     <div className="container">

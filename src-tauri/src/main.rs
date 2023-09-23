@@ -6,6 +6,9 @@ use crate::database::MemoryDatabase;
 use crate::database::Task;
 use crate::database::TaskDatabase;
 use crate::database::TaskID;
+use serde::Deserialize;
+use tauri::InvokeError;
+use thiserror::Error;
 
 type Database = MemoryDatabase;
 
@@ -13,7 +16,8 @@ fn main() {
     tauri::Builder::default()
         .manage(Database::new())
         .invoke_handler(tauri::generate_handler![
-            get_category_tasks,
+            get_tasks_for_mode,
+            get_root_tasks,
             get_task,
             get_tasks,
             new_task,
@@ -24,8 +28,46 @@ fn main() {
 }
 
 #[tauri::command]
-fn get_category_tasks(state: tauri::State<Database>) -> Vec<Task> {
-    state.inner().root_tasks().unwrap()
+fn get_tasks_for_mode(
+    state: tauri::State<Database>,
+    mode: Mode,
+) -> Result<Vec<Task>, Error> {
+    println!("{:?}", mode);
+    Ok(vec![])
+}
+
+#[tauri::command]
+fn get_root_tasks(state: tauri::State<Database>) -> Result<Vec<Task>, Error> {
+    Ok(state.inner().root_tasks()?)
+}
+
+#[derive(Debug, Deserialize)]
+enum Mode {
+    Inbox,
+    Today,
+    Upcoming,
+    Anytime,
+    Someday,
+    Logbook,
+    Trash,
+}
+
+#[derive(Debug, Error)]
+enum Error {
+    #[error("An error occurred")]
+    AnyhowError(String),
+}
+
+impl From<anyhow::Error> for Error {
+    fn from(value: anyhow::Error) -> Self {
+        Self::AnyhowError(value.to_string())
+    }
+}
+
+impl Into<InvokeError> for Error {
+    fn into(self) -> InvokeError {
+        todo!()
+    }
 }
 
 #[tauri::command]
