@@ -1,3 +1,4 @@
+use anyhow::anyhow;
 use chrono::Local;
 use chrono::NaiveDate;
 use rusqlite::Connection;
@@ -6,9 +7,11 @@ use std::path::Path;
 use std::str::FromStr;
 use std::sync::Mutex;
 
+pub type TaskID = i64;
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Task {
-    id: i64,
+    id: TaskID,
     pub title: String,
     pub description: String,
     pub scheduled: Scheduled,
@@ -102,6 +105,19 @@ impl Database {
             scheduled: Scheduled::Anytime,
             completed: None,
         })
+    }
+
+    pub fn get_task(&self, id: TaskID) -> anyhow::Result<Task> {
+        let conn = self.conn.lock().unwrap();
+
+        let mut statement = conn.prepare("SELECT * FROM tasks WHERE id = ?")?;
+        let mut rows = statement.query((id,))?;
+
+        while let Some(row) = rows.next()? {
+            return Task::extract_from_row(row);
+        }
+
+        return Err(anyhow!("No such task with ID: {}", id));
     }
 
     pub fn update_task(&self, task: &Task) -> anyhow::Result<()> {
@@ -221,6 +237,22 @@ impl Database {
         Ok(tasks)
     }
 
+    pub fn root_tasks(&self) -> anyhow::Result<Vec<Task>> {
+        let conn = self.conn.lock().unwrap();
+
+        let mut statement = conn.prepare(
+            "SELECT * FROM tasks WHERE NOT EXISTS (SELECT * FROM links WHERE links.to_id = tasks.id)",
+        )?;
+        let mut rows = statement.query(())?;
+
+        let mut tasks = vec![];
+        while let Some(row) = rows.next()? {
+            tasks.push(Task::extract_from_row(row)?);
+        }
+
+        Ok(tasks)
+    }
+
     pub fn parents(&self, task: &Task) -> anyhow::Result<Vec<Task>> {
         todo!()
     }
@@ -236,22 +268,8 @@ impl Database {
 
 const ISO_8601_FMT: &'static str = "%Y-%m-%d";
 
-fn from_iso_8601(iso_8601: &str) -> Result<NaiveDate, chrono::ParseError> {
-    NaiveDate::parse_from_str(iso_8601, ISO_8601_FMT)
-}
-
-fn to_iso_8601(date: NaiveDate) -> String {
-    date.format(ISO_8601_FMT).to_string()
-}
-
 fn today() -> NaiveDate {
     Local::now().naive_local().date()
-}
-
-fn today_iso_8601() -> String {
-    let today = Local::now().naive_local().date();
-    let today_iso_8601 = today.format(ISO_8601_FMT).to_string();
-    today_iso_8601
 }
 
 #[cfg(test)]
@@ -294,6 +312,17 @@ mod tests {
                 completed: None,
             },
         );
+        Ok(())
+    }
+
+    #[test]
+    fn test_get_task() -> anyhow::Result<()> {
+        let temp_database = TempDatabase::new()?;
+        let database = temp_database.database();
+
+        let task = database.new_task()?;
+        let retrieved_task = database.get_task(task.id)?;
+        assert_eq!(task, retrieved_task);
         Ok(())
     }
 
@@ -392,6 +421,24 @@ mod tests {
         let logbook_tasks = database.logbook()?;
         assert_eq!(logbook_tasks.len(), 1);
         assert_eq!(task, logbook_tasks[0]);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_root_tasks() -> anyhow::Result<()> {
+        let temp_database = TempDatabase::new()?;
+        let database = temp_database.database();
+
+        let root_task_0 = database.new_task()?;
+        let root_task_1 = database.new_task()?;
+        let child_task = database.new_task()?;
+        database.link(&root_task_0, &child_task)?;
+
+        let root_tasks = database.root_tasks()?;
+        assert_eq!(root_tasks.len(), 2);
+        assert_eq!(root_task_0, root_tasks[0]);
+        assert_eq!(root_task_1, root_tasks[1]);
 
         Ok(())
     }
