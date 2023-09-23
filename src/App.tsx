@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useHotkeys } from "react-hotkeys-hook";
 import { invoke } from "@tauri-apps/api/tauri";
 import classNames from "classnames";
 import { useDebounce } from "usehooks-ts";
@@ -6,11 +7,12 @@ import { useDebounce } from "usehooks-ts";
 import "./App.css";
 import reactLogo from "./assets/react.svg";
 import { Task, Mode, View, isMode } from "./types.ts";
+import SearchView from "./SearchView.tsx";
 import TaskView from "./TaskView.tsx";
 
 function App() {
-  const [greetMsg, setGreetMsg] = useState("");
-  const [name, setName] = useState("");
+  const [searchShown, setSearchShown] = useState(false);
+  useHotkeys(["mod+k"], () => { setSearchShown(true) });
 
   const [tasks, setTasks] = useState([]);
   useEffect(() => {
@@ -52,6 +54,8 @@ function App() {
 
   return (
     <div className="container">
+      <SearchView shown={searchShown} setShown={setSearchShown} />
+
       <div className="side-bar">
         <Category mode={Mode.Inbox} currentView={currentView} setCurrentView={setCurrentView} />
 

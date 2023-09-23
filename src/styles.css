@@ -13,6 +13,7 @@
         --foreground: #f6f6f6;
         --foreground-lowlight: #b3b3b3;
         --background-highlight: #383838;
+        --background-blur: rgba(246, 246, 246, 0.3);
         --background: #2f2f2f;
         --background-75: #212121;
         --background-50: #171717;
