@@ -4,10 +4,10 @@ use std::path::Path;
 use std::sync::Mutex;
 
 pub struct Task {
-    id: usize,
+    id: i64,
     pub title: String,
     pub description: String,
-    pub scheduled: NaiveDate,
+    pub scheduled: Option<NaiveDate>,
 }
 
 pub struct Database {
@@ -31,7 +31,17 @@ impl Database {
     }
 
     pub fn new_task(&self) -> anyhow::Result<Task> {
-        todo!()
+        let conn = self.conn.lock().unwrap();
+
+        let mut statement = conn.prepare("INSERT INTO TASKS (title, description, scheduled) VALUES (\"\", \"\", NULL);")?;
+        let id = statement.insert(())?;
+
+        Ok(Task{
+            id,
+            title: "".into(),
+            description: "".into(),
+            scheduled: None,
+        })
     }
 
     pub fn inbox(&self) -> anyhow::Result<Vec<Task>> {
