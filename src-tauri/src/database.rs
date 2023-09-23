@@ -16,7 +16,28 @@ pub struct Task {
 
 impl Task {
     fn extract_from_row(row: &Row<'_>) -> anyhow::Result<Self> {
-        todo!()
+        let scheduled_str: String = row.get("scheduled")?;
+        let scheduled = match scheduled_str.as_str() {
+            "anytime" => Scheduled::Anytime,
+            "someday" => Scheduled::Someday,
+            s => Scheduled::Day(NaiveDate::parse_from_str(s, ISO_8601_FMT)?),
+        };
+
+        let completed_str: Option<String> = row.get("completed")?;
+        let completed: Option<NaiveDate> = if let Some(completed_str) = completed_str {
+            Some(NaiveDate::parse_from_str(&completed_str, ISO_8601_FMT)?)
+        } else {
+            None
+        };
+
+
+        Ok(Self {
+            id: row.get("id")?,
+            title: row.get("title")?,
+            description: row.get("description")?,
+            scheduled,
+            completed,
+        })
     }
 }
 
@@ -170,9 +191,11 @@ impl Database {
     }
 }
 
+const ISO_8601_FMT: &'static str = "%Y-%m-%d";
+
 fn today_iso_8601() -> String {
     let today = Local::now().naive_local().date();
-    let today_iso_8601 = today.format("%Y-%m-%d").to_string();
+    let today_iso_8601 = today.format(ISO_8601_FMT).to_string();
     today_iso_8601
 }
 
