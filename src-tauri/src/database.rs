@@ -10,6 +10,7 @@ pub struct Task {
     pub title: String,
     pub description: String,
     pub scheduled: Scheduled,
+    pub completed: Option<NaiveDate>,
 }
 
 impl Task {
@@ -66,6 +67,7 @@ impl Database {
             title: "".into(),
             description: "".into(),
             scheduled: Scheduled::Anytime,
+            completed: None,
         })
     }
 
@@ -140,7 +142,17 @@ impl Database {
     }
 
     pub fn logbook(&self) -> anyhow::Result<Vec<Task>> {
-        todo!()
+        let conn = self.conn.lock().unwrap();
+
+        let mut statement = conn.prepare(include_str!("sql/queries/logbook.sql"))?;
+        let mut rows = statement.query(())?;
+
+        let mut tasks = vec![];
+        while let Some(row) = rows.next()? {
+            tasks.push(Task::extract_from_row(row)?);
+        }
+
+        Ok(tasks)
     }
 
     pub fn parents(&self, task: &Task) -> anyhow::Result<Vec<Task>> {

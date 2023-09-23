@@ -1,6 +1,8 @@
 SELECT *
 FROM tasks
-WHERE NOT EXISTS (
+WHERE scheduled = 'anytime'
+  AND completed IS NULL
+  AND NOT EXISTS (
   SELECT *
   FROM links
   WHERE links.from_id = tasks.id
