@@ -3,13 +3,14 @@ use chrono::Local;
 use chrono::NaiveDate;
 use rusqlite::Connection;
 use rusqlite::Row;
+use serde::Serialize;
 use std::path::Path;
 use std::str::FromStr;
 use std::sync::Mutex;
 
 pub type TaskID = i64;
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct Task {
     id: TaskID,
     pub title: String,
@@ -38,7 +39,6 @@ impl Task {
             None
         };
 
-
         Ok(Self {
             id: row.get("id")?,
             title: row.get("title")?,
@@ -49,7 +49,7 @@ impl Task {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub enum Scheduled {
     Anytime,
     Someday,
@@ -119,7 +119,7 @@ impl Database {
         let conn = self.conn.lock().unwrap();
 
         let mut statement = conn.prepare("SELECT * FROM tasks WHERE id = ?")?;
-        let rows = statement.query((id,))?;
+        let mut rows = statement.query((id,))?;
 
         while let Some(row) = rows.next()? {
             return Task::from_row(row);
@@ -229,9 +229,8 @@ impl Database {
     pub fn parents(&self, task: &Task) -> anyhow::Result<Vec<Task>> {
         let conn = self.conn.lock().unwrap();
 
-        let mut statement = conn.prepare(
-            "SELECT tasks.* FROM tasks INNER JOIN links ON links.to_id = tasks.id",
-        )?;
+        let mut statement =
+            conn.prepare("SELECT tasks.* FROM tasks INNER JOIN links ON links.to_id = tasks.id")?;
         let rows = statement.query(())?;
 
         Task::from_rows(rows)
@@ -240,9 +239,8 @@ impl Database {
     pub fn children(&self, task: &Task) -> anyhow::Result<Vec<Task>> {
         let conn = self.conn.lock().unwrap();
 
-        let mut statement = conn.prepare(
-            "SELECT tasks.* FROM tasks INNER JOIN links ON links.from_id = tasks.id",
-        )?;
+        let mut statement =
+            conn.prepare("SELECT tasks.* FROM tasks INNER JOIN links ON links.from_id = tasks.id")?;
         let rows = statement.query(())?;
 
         Task::from_rows(rows)
@@ -299,6 +297,19 @@ mod tests {
                 completed: None,
             },
         );
+
+        let other_new_task = temp_database.database().new_task()?;
+        assert_eq!(
+            other_new_task,
+            Task {
+                id: 2,
+                title: "".into(),
+                description: "".into(),
+                scheduled: Scheduled::Anytime,
+                completed: None,
+            },
+        );
+
         Ok(())
     }
 
