@@ -119,6 +119,24 @@ impl Database {
         Ok(())
     }
 
+    pub fn link(&self, from: &Task, to: &Task) -> anyhow::Result<()> {
+        let conn = self.conn.lock().unwrap();
+
+        let mut statement = conn.prepare(include_str!("sql/queries/link.sql"))?;
+        statement.execute((from.id, to.id))?;
+
+        Ok(())
+    }
+
+    pub fn unlink(&self, from: &Task, to: &Task) -> anyhow::Result<()> {
+        let conn = self.conn.lock().unwrap();
+
+        let mut statement = conn.prepare(include_str!("sql/queries/unlink.sql"))?;
+        statement.execute((from.id, to.id))?;
+
+        Ok(())
+    }
+
     pub fn inbox(&self) -> anyhow::Result<Vec<Task>> {
         let conn = self.conn.lock().unwrap();
 
@@ -282,8 +300,10 @@ mod tests {
     #[test]
     fn test_inbox() -> anyhow::Result<()> {
         let temp_database = TempDatabase::new()?;
-        let task = temp_database.database().new_task()?;
-        let inbox_tasks = temp_database.database().inbox()?;
+        let database = temp_database.database();
+
+        let task = database.new_task()?;
+        let inbox_tasks = database.inbox()?;
 
         assert_eq!(inbox_tasks.len(), 1);
         assert_eq!(task, inbox_tasks[0]);
@@ -306,6 +326,73 @@ mod tests {
         Ok(())
     }
 
-    // #[test]
-    // fn test_
+    #[test]
+    fn test_upcoming() -> anyhow::Result<()> {
+        let temp_database = TempDatabase::new()?;
+        let database = temp_database.database();
+
+        let mut task = database.new_task()?;
+        task.scheduled = Scheduled::Day(today() + chrono::Days::new(1));
+        database.update_task(&task)?;
+
+        {
+            let mut someday_task = database.new_task()?;
+            someday_task.scheduled = Scheduled::Someday;
+            database.update_task(&someday_task)?;
+        }
+
+        let upcoming_tasks = database.upcoming()?;
+        assert_eq!(upcoming_tasks.len(), 1);
+        assert_eq!(task, upcoming_tasks[0]);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_anytime() -> anyhow::Result<()> {
+        let temp_database = TempDatabase::new()?;
+        let database = temp_database.database();
+
+        let parent_task = database.new_task()?;
+        let child_task = database.new_task()?;
+        database.link(&parent_task, &child_task)?;
+
+        let anytime_tasks = database.anytime()?;
+        assert_eq!(anytime_tasks.len(), 1);
+        assert_eq!(child_task, anytime_tasks[0]);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_someday() -> anyhow::Result<()> {
+        let temp_database = TempDatabase::new()?;
+        let database = temp_database.database();
+
+        let mut task = database.new_task()?;
+        task.scheduled = Scheduled::Someday;
+        database.update_task(&task)?;
+
+        let someday_tasks = database.someday()?;
+        assert_eq!(someday_tasks.len(), 1);
+        assert_eq!(task, someday_tasks[0]);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_logbook() -> anyhow::Result<()> {
+        let temp_database = TempDatabase::new()?;
+        let database = temp_database.database();
+
+        let mut task = database.new_task()?;
+        task.completed = Some(today());
+        database.update_task(&task)?;
+
+        let logbook_tasks = database.logbook()?;
+        assert_eq!(logbook_tasks.len(), 1);
+        assert_eq!(task, logbook_tasks[0]);
+
+        Ok(())
+    }
 }
