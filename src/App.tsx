@@ -65,7 +65,7 @@ function App() {
         <div className="space-small"></div>
 
         <Category mode={Mode.Logbook} currentView={currentView} setCurrentView={setCurrentView} />
-        <Category mode={Mode.Trash} currentView={currentView} setCurrentView={setCurrentView} />
+        { /* <Category mode={Mode.Trash} currentView={currentView} setCurrentView={setCurrentView} /> */ }
 
         <div className="space-small"></div>
 
@@ -139,7 +139,7 @@ function CategoryTask(props: ICategoryTaskProps) {
     >
       {props.task.title.length > 0
         ? props.task.title
-        : "Untitled Task"}
+        : "New Task"}
     </div>
   );
 }
@@ -151,7 +151,7 @@ interface IMainViewProps {
 
 function MainView(props: IMainViewProps) {
   let [tasks, setTasks] = useState(null);
-  let [task, setTask] = useState(null);
+  let [taskResponse, setTaskResponse] = useState(null);
 
   useEffect(() => {
     if (isMode(props.view)) {
@@ -160,26 +160,26 @@ function MainView(props: IMainViewProps) {
       })();
     } else {
       (async () => {
-        setTask(await invoke("get_task", {id: props.view}));
+        setTaskResponse(await invoke("get_task", {id: props.view}));
       })();
     }
   }, [props.view]);
 
   useEffect(() => {
-    if (task == null) {
+    if (taskResponse == null) {
       return;
     }
     (async () => {
-      props.updateTask(task);
-      await invoke("update_task", {task: task});
+      props.updateTask(taskResponse.task);
+      await invoke("update_task", {task: taskResponse.task});
     })();
-  }, [task])
+  }, [taskResponse])
 
   function isLoading(): bool {
     if (isMode(props.view)) {
       return tasks == null;
     }
-    return task == null;
+    return taskResponse == null;
   }
 
   if (isLoading()) {
@@ -189,8 +189,13 @@ function MainView(props: IMainViewProps) {
   } else {
     return (
       <TaskView
-        task={task}
-        setTask={setTask}
+        task={taskResponse.task}
+        children={taskResponse.children}
+        parents={taskResponse.parents}
+        setTask={(task) => setTaskResponse({
+          ...taskResponse,
+          task: task,
+        })}
       />
     );
   }

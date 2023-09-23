@@ -6,6 +6,12 @@ export interface Task {
   completed: string | null,
 }
 
+export interface GetTaskResponse {
+  task: Task,
+  children: [Task],
+  parents: [Task],
+}
+
 export enum Mode {
   Inbox = "Inbox",
   Today = "Today",

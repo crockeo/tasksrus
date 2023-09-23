@@ -41,7 +41,7 @@ input {
     background-color: var(--background);
     border-style: none;
     color: var(--foregound);
-    margin: 1rem;
+    margin: 0.5rem;
     max-width: 100%;
 }
 
@@ -59,7 +59,7 @@ textarea {
     border: none;
     color: var(--foreground);
     font-size: 1rem;
-    margin: 1rem;
+    margin: 0.5rem;
     padding: 1rem;
     resize: none;
 }

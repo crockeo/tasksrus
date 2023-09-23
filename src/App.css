@@ -11,6 +11,7 @@
 .main-view {
     grid-column: 2 / 6;
     height: 100vh;
+    padding: 0.5rem;
 }
 
 .task-list {
@@ -29,14 +30,14 @@
 }
 
 .task {
-    cursor: pointer;
-    padding: 0.2rem 0.4rem;
     border-radius: 0.5rem;
+    cursor: pointer;
+    font-weight: 500;
+    padding: 0.2rem 0.4rem;
 }
 
 .task-empty-title {
     color: var(--foreground-lowlight);
-    font-style: italic;
 }
 
 .task-selected {

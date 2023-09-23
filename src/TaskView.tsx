@@ -7,6 +7,8 @@ import { Task } from "./types.ts"
 
 export interface ITaskViewProps {
   task: Task,
+  children: [Task],
+  parents: [Task],
   setTask: (Task) => any,
 }
 
@@ -22,6 +24,14 @@ function TaskView(props: ITaskViewProps) {
         placeholder="New Task"
         value={props.task.title}
       />
+
+      <div>
+        {props.parents.map((parent, id) =>
+          <div key={id}>
+            {parent.title}
+          </div>
+        )}
+      </div>
 
       <textarea
         className="description-input"
