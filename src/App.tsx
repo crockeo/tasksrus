@@ -8,8 +8,11 @@ import reactLogo from "./assets/react.svg";
 
 
 interface Task {
-  inner_id: number
-  title: string
+  id: number,
+  title: string,
+  description: string,
+  scheduled: string,
+  completed: string | null,
 }
 
 enum Mode {
@@ -33,18 +36,10 @@ function App() {
     (async () => {
       setTasks(await invoke("get_root_tasks"));
     })();
-  });
+  }, []);
 
   const [currentView, setCurrentView] = useState(Mode.Inbox);
   const [contents, setContents] = useState(null);
-
-  async function getTasks() {
-    setContents(await invoke("get_tasks", { view: currentView }));
-  }
-
-  async function getTask() {
-    setContents(await invoke("get_task", { taskId: currentView }));
-  }
 
   async function newTask() {
     setTasks([
@@ -65,12 +60,14 @@ function App() {
     case Mode.Logbook:
     case Mode.Trash:
       (async () => {
-        setContents(await invoke("get_tasks_for_mode", {mode: currentView}));
+        setContents(await invoke("get_tasks_for_view", {view: currentView}));
       })();
       break;
 
     default:
-      getTask()
+      (async () => {
+        setContents(await invoke("get_task", {id: currentView}));
+      })();
       break;
     }
 
@@ -98,7 +95,7 @@ function App() {
         <div className="task-list">
           {tasks.map((task) =>
             <CategoryTask
-              key={task.inner_id}
+              key={task.id}
               task={task}
               currentView={currentView}
               setCurrentView={setCurrentView}
@@ -156,11 +153,11 @@ function CategoryTask(props: ITaskProps) {
       className={
         classNames("task", {
           "task-empty-title": props.task.title.length == 0,
-          "task-selected": props.currentView == props.task.inner_id,
+          "task-selected": props.currentView == props.task.id,
         })
       }
       onClick={(_) => {
-        props.setCurrentView(props.task.inner_id)
+        props.setCurrentView(props.task.id)
       }}
     >
       {props.task.title.length > 0
@@ -228,7 +225,7 @@ function TaskView(props: ITaskViewProps) {
         placeholder="Enter task title" value={title}
       />
 
-      <div>{ props.task.inner_id }</div>
+      <div>{ props.task.id }</div>
       <div>{ props.task.title }</div>
     </div>
   );

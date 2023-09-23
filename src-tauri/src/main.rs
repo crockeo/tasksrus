@@ -4,6 +4,7 @@ mod database;
 
 use crate::database::Database;
 use crate::database::Task;
+use database::TaskID;
 use serde::Deserialize;
 use tauri::InvokeError;
 use tauri::State;
@@ -19,6 +20,7 @@ fn main() -> anyhow::Result<()> {
             get_tasks_for_view,
             get_root_tasks,
             new_task,
+            get_task,
         ])
         .run(tauri::generate_context!())?;
 
@@ -56,6 +58,11 @@ fn get_root_tasks(database: State<Database>) -> Result<Vec<Task>, Error> {
 #[tauri::command]
 fn new_task(database: State<Database>) -> Result<Task, Error> {
     Ok(database.new_task()?)
+}
+
+#[tauri::command]
+fn get_task(database: State<Database>, id: TaskID) -> Result<Task, Error> {
+    Ok(database.get_task(id)?)
 }
 
 pub enum Error {
