@@ -3,9 +3,10 @@ use chrono::NaiveDate;
 use rusqlite::Connection;
 use rusqlite::Row;
 use std::path::Path;
+use std::str::FromStr;
 use std::sync::Mutex;
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Task {
     id: i64,
     pub title: String,
@@ -17,11 +18,7 @@ pub struct Task {
 impl Task {
     fn extract_from_row(row: &Row<'_>) -> anyhow::Result<Self> {
         let scheduled_str: String = row.get("scheduled")?;
-        let scheduled = match scheduled_str.as_str() {
-            "anytime" => Scheduled::Anytime,
-            "someday" => Scheduled::Someday,
-            s => Scheduled::Day(NaiveDate::parse_from_str(s, ISO_8601_FMT)?),
-        };
+        let scheduled = Scheduled::from_str(&scheduled_str)?;
 
         let completed_str: Option<String> = row.get("completed")?;
         let completed: Option<NaiveDate> = if let Some(completed_str) = completed_str {
@@ -41,11 +38,24 @@ impl Task {
     }
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Scheduled {
     Anytime,
     Someday,
     Day(NaiveDate),
+}
+
+impl FromStr for Scheduled {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        use Scheduled::*;
+        Ok(match s {
+            "anytime" => Anytime,
+            "someday" => Someday,
+            iso_8601 => Scheduled::Day(NaiveDate::parse_from_str(iso_8601, ISO_8601_FMT)?),
+        })
+    }
 }
 
 impl ToString for Scheduled {
@@ -94,6 +104,21 @@ impl Database {
         })
     }
 
+    pub fn update_task(&self, task: &Task) -> anyhow::Result<()> {
+        let conn = self.conn.lock().unwrap();
+
+        let mut statement = conn.prepare(include_str!("sql/queries/update_task.sql"))?;
+        statement.execute((
+            &task.title,
+            &task.description,
+            task.scheduled.to_string(),
+            task.completed.map(|c| c.format(ISO_8601_FMT).to_string()),
+            task.id,
+        ))?;
+
+        Ok(())
+    }
+
     pub fn inbox(&self) -> anyhow::Result<Vec<Task>> {
         let conn = self.conn.lock().unwrap();
 
@@ -112,7 +137,7 @@ impl Database {
         let conn = self.conn.lock().unwrap();
 
         let mut statement = conn.prepare(include_str!("sql/queries/today.sql"))?;
-        let mut rows = statement.query((today_iso_8601(),))?;
+        let mut rows = statement.query((today().format(ISO_8601_FMT).to_string(),))?;
 
         let mut tasks = vec![];
         while let Some(row) = rows.next()? {
@@ -126,7 +151,7 @@ impl Database {
         let conn = self.conn.lock().unwrap();
 
         let mut statement = conn.prepare(include_str!("sql/queries/upcoming.sql"))?;
-        let mut rows = statement.query((today_iso_8601(),))?;
+        let mut rows = statement.query((today().format(ISO_8601_FMT).to_string(),))?;
 
         let mut tasks = vec![];
         while let Some(row) = rows.next()? {
@@ -193,6 +218,18 @@ impl Database {
 
 const ISO_8601_FMT: &'static str = "%Y-%m-%d";
 
+fn from_iso_8601(iso_8601: &str) -> Result<NaiveDate, chrono::ParseError> {
+    NaiveDate::parse_from_str(iso_8601, ISO_8601_FMT)
+}
+
+fn to_iso_8601(date: NaiveDate) -> String {
+    date.format(ISO_8601_FMT).to_string()
+}
+
+fn today() -> NaiveDate {
+    Local::now().naive_local().date()
+}
+
 fn today_iso_8601() -> String {
     let today = Local::now().naive_local().date();
     let today_iso_8601 = today.format(ISO_8601_FMT).to_string();
@@ -252,4 +289,23 @@ mod tests {
         assert_eq!(task, inbox_tasks[0]);
         Ok(())
     }
+
+    #[test]
+    fn test_today() -> anyhow::Result<()> {
+        let temp_database = TempDatabase::new()?;
+        let database = temp_database.database();
+
+        let mut task = database.new_task()?;
+        task.scheduled = Scheduled::Day(today());
+        database.update_task(&task)?;
+
+        let today_tasks = database.today()?;
+        assert_eq!(today_tasks.len(), 1);
+        assert_eq!(task, today_tasks[0]);
+
+        Ok(())
+    }
+
+    // #[test]
+    // fn test_
 }
