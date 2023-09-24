@@ -1,9 +1,10 @@
 import classNames from "classnames";
-import { PlusCircleIcon } from "@heroicons/react/24/solid";
+import { PlusIcon } from "@heroicons/react/24/solid";
 import { invoke } from "@tauri-apps/api/tauri";
 import { useEffect, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
+import Button from "./Button.tsx";
 import SearchView from "./SearchView.tsx";
 import TaskListItem from "./TaskListItem.tsx";
 import TaskView from "./TaskView.tsx";
@@ -53,11 +54,11 @@ function App() {
   }
 
   return (
-    <div className="grid grid-cols-5 w-screen h-screen text-base text-stone-200 overflow-y-none">
+    <div className="grid grid-cols-5 w-screen h-screen text-base text-stone-100 overflow-y-hidden">
       <SearchView shown={searchShown} setShown={setSearchShown} />
 
-      <div className="bg-stone-900 col-span-1 h-screen">
-        <div className="flex flex-col px-3 py-5">
+      <div className="flex flex-col bg-stone-800 col-span-1 h-screen">
+        <div className="flex-1 flex flex-col overflow-y-hidden px-3 py-5">
           <div>
             <Category mode={Mode.Inbox} currentView={currentView} setCurrentView={setCurrentView} />
 
@@ -76,7 +77,7 @@ function App() {
             <div className="my-3"></div>
           </div>
 
-          <div className="overflow-y-auto">
+          <div className="overflow-y-scroll">
             {tasks.map((task) =>
               <CategoryTask
                 key={task.id}
@@ -88,15 +89,16 @@ function App() {
           </div>
         </div>
 
-        <div className="border-t border-stone-700 p-2">
-          <div>{""}</div>
-          <button onClick={newTask}>
-            <PlusCircleIcon className="text-stone-400 w-6 h-6" />
-          </button>
+        <div className="border-t border-stone-900 p-2">
+          <Button onClick={newTask}>
+            <span className="inline-block"><PlusIcon className="w-4 h-4" /></span>
+            <span className="mx-0.5"></span>
+            <span className="inline">New Task</span>
+          </Button>
         </div>
       </div>
 
-      <div className="bg-stone-800 col-span-4">
+      <div className="bg-stone-700 col-span-4">
         <div className="mx-auto w-3/4">
           <MainView updateTask={updateTask} view={currentView} />
         </div>

@@ -22,14 +22,14 @@ function TaskListItem(props: ITaskListItemProps) {
   }
 
   return (
-    <div className="flex item-center py-1">
+    <div className="flex items-center py-1">
       <input className="checkbox checkbox-sm" type="checkbox" onClick={(e) => setChecked(e.target.checked)} checked={checked} />
       <span className="mx-1"></span>
       <span
         className={classNames({
           "text-stone-500": checked,
           "line-through": checked,
-          "text-stone-400": !props.task.title,
+          "text-stone-300": !props.task.title,
         })}
         onClick={() => props.onClick()}
       >
