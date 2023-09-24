@@ -61,7 +61,7 @@ function MainView(props: IMainViewProps) {
   }
 
   return (
-    <div className="flex-1 flex flex-col mx-auto w-3/4 h-screen">
+    <div className="flex flex-col h-full mx-auto w-3/4">
       {view}
     </div>
   );
