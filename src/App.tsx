@@ -13,7 +13,7 @@ function App() {
   const [searchShown, setSearchShown] = useState(false);
   const [tasks, setTasks] = useState([] as Array<Task>);
 
-  useHotkeys(["mod+k"], () => { setSearchShown(true) });
+  useHotkeys(["mod+f"], () => { setSearchShown(true) });
 
   useEffect(() => {
     (async () => {
