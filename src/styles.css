@@ -1,91 +1,9 @@
-:root {
-    cursor: default;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-    --foreground: #2f2f2f;
-    --foreground-lowlight: #404040;
-    /* TODO: make this a real color */
-    --background-highlight: #ff0000;
-    --background: #f6f6f6;
-    --background-75: #b8b8b8;
-    --background-50: #7a7a7a;
-}
-
-@media (prefers-color-scheme: dark) {
-    :root {
-        --foreground: #f6f6f6;
-        --foreground-lowlight: #b3b3b3;
-        --background-highlight: #383838;
-        --background-blur: rgba(246, 246, 246, 0.3);
-        --background: #2f2f2f;
-        --background-75: #212121;
-        --background-50: #171717;
-    }
-}
-
-:root {
-    background-color: var(--background);
-    color: var(--foreground);
+html {
     height: 100vh;
-    margin: 0;
-    overflow: hidden;
+    overflow-y: none;
     width: 100vw;
-
-    font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
-    font-size: 14px;
-    font-synthesis: none;
-    font-weight: 400;
-    text-rendering: optimizeLegibility;
-    -moz-osx-font-smoothing: grayscale;
-    -webkit-font-smoothing: antialiased;
-    -webkit-text-size-adjust: 100%;
-}
-
-input {
-    background-color: var(--background);
-    border-style: none;
-    color: var(--foregound);
-    max-width: 100%;
-}
-
-input:focus {
-    outline: none;
-}
-
-input::placeholder {
-    color: var(--foreground-lowlight);
-}
-
-textarea {
-    background-color: var(--background-75);
-    border-radius: 0.5rem;
-    border: none;
-    color: var(--foreground);
-    font-size: 1rem;
-    margin: 0.5rem;
-    padding: 1rem;
-    resize: none;
-}
-
-textarea:focus {
-    outline: none;
-}
-
-body {
-    margin: 0;
-}
-
-.container {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    height: 100vh;
-    margin: 0;
-    width: 100vw;
-}
-
-.space-small {
-    margin: 0.4rem;
-}
-
-.space-medium {
-    margin: 0.8rem;
 }

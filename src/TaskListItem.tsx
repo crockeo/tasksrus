@@ -1,5 +1,6 @@
+import classNames from "classnames";
+
 import { Task } from "./types.ts";
-import "./TaskListItem.css";
 
 export interface ITaskListItemProps {
   task: Task,
@@ -7,9 +8,20 @@ export interface ITaskListItemProps {
 }
 
 function TaskListItem(props: ITaskListItemProps) {
+  let title = props.task.title;
+  if (title == "") {
+    title = "New Task";
+  }
+
   return (
     <div>
-      <div className="task-title">{props.task.title}</div>
+      <span
+        className={classNames({
+          "text-stone-400": !props.task.title,
+        })}
+      >
+        {props.task.title != "" ? title : "New Task"}
+      </span>
     </div>
   );
 }

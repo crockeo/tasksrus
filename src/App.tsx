@@ -1,15 +1,13 @@
+import classNames from "classnames";
+import { invoke } from "@tauri-apps/api/tauri";
 import { useEffect, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
-import { invoke } from "@tauri-apps/api/tauri";
-import classNames from "classnames";
-import { useDebounce } from "usehooks-ts";
 
-import "./App.css";
-import reactLogo from "./assets/react.svg";
-import { Task, Mode, View, isMode } from "./types.ts";
 import SearchView from "./SearchView.tsx";
-import TaskView from "./TaskView.tsx";
 import TaskListItem from "./TaskListItem.tsx";
+import TaskView from "./TaskView.tsx";
+import { Task, Mode, View, isMode } from "./types.ts";
+import { getIconForMode } from "./icons.tsx";
 
 function App() {
   const [searchShown, setSearchShown] = useState(false);
@@ -54,27 +52,27 @@ function App() {
   }
 
   return (
-    <div className="container">
+    <div className="flex flex-row w-screen h-screen text-base text-stone-200">
       <SearchView shown={searchShown} setShown={setSearchShown} />
 
-      <div className="side-bar">
+      <div className="bg-stone-900 flex-basis-0 px-3 py-5">
         <Category mode={Mode.Inbox} currentView={currentView} setCurrentView={setCurrentView} />
 
-        <div className="space-small"></div>
+        <div className="my-4"></div>
 
         <Category mode={Mode.Today} currentView={currentView} setCurrentView={setCurrentView} />
         <Category mode={Mode.Upcoming} currentView={currentView} setCurrentView={setCurrentView} />
         <Category mode={Mode.Anytime} currentView={currentView} setCurrentView={setCurrentView} />
         <Category mode={Mode.Someday} currentView={currentView} setCurrentView={setCurrentView} />
 
-        <div className="space-small"></div>
+        <div className="my-4"></div>
 
         <Category mode={Mode.Logbook} currentView={currentView} setCurrentView={setCurrentView} />
-        { /* <Category mode={Mode.Trash} currentView={currentView} setCurrentView={setCurrentView} /> */ }
+        <Category mode={Mode.Trash} currentView={currentView} setCurrentView={setCurrentView} />
 
-        <div className="space-small"></div>
+        <div className="my-4"></div>
 
-        <div className="side-task-list">
+        <div className="flex-1">
           {tasks.map((task) =>
             <CategoryTask
               key={task.id}
@@ -85,16 +83,18 @@ function App() {
           )}
         </div>
 
-        <div className="space-small"></div>
+        <div className="my-2"></div>
 
-        <div className="side-bar-bottom-bar">
+        <div>
           <div>{""}</div>
-          <button className="add-task-button" onClick={newTask}>+</button>
+          <button onClick={newTask}>+</button>
         </div>
       </div>
 
-      <div className="main-view">
-        <MainView updateTask={updateTask} view={currentView} />
+      <div className="bg-stone-800 flex-1">
+        <div className="mx-auto w-3/4">
+          <MainView updateTask={updateTask} view={currentView} />
+        </div>
       </div>
     </div>
   );
@@ -107,16 +107,29 @@ interface ICategoryProps {
 }
 
 function Category(props: ICategoryProps) {
+  let icon = getIconForMode(props.mode);
   return (
     <div
       className={
-        classNames("category", "task", {
-          "task-selected": props.currentView == props.mode
-        })
+        classNames(
+          "cursor-default",
+          "flex",
+          "font-medium",
+          "items-center",
+          "px-2",
+          "py-0.5",
+          "rounded",
+          "select-none",
+          {
+            "bg-stone-700": props.currentView == props.mode,
+          },
+        )
       }
       onClick={(_) => props.setCurrentView(props.mode)}
     >
-      {props.mode}
+      <span className="inline-block w-4 h-4">{icon}</span>
+      <span className="m-1"></span>
+      <span>{props.mode}</span>
     </div>
   );
 }
@@ -220,8 +233,14 @@ interface ITaskListViewProps {
 
 function TaskListView(props: ITaskListViewProps) {
   return (
-    <div className="task-list">
-      <div className="task-list-title">{props.mode}</div>
+    <div className="my-12 w-75 mx-auto">
+      <div className="mb-8 flex items-center">
+        <span className="inline-block w-7 h-7">
+          {getIconForMode(props.mode)}
+        </span>
+        <span className="mx-1"></span>
+        <span className="font-semibold text-3xl">{props.mode}</span>
+      </div>
 
       <div className="task-list-tasks">
         {props.tasks.map((task, i) =>

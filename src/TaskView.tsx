@@ -2,7 +2,6 @@ import { invoke } from "@tauri-apps/api/tauri";
 import { useDebounce } from "usehooks-ts";
 import { useEffect, useState } from "react";
 
-import "./TaskView.css";
 import { Task } from "./types.ts"
 
 export interface ITaskViewProps {

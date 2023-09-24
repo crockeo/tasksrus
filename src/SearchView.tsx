@@ -4,8 +4,6 @@ import { useDebounce } from "usehooks-ts";
 import { useEffect, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
-import "./SearchView.css";
-
 export interface ISearchViewProps {
   shown: bool,
   setShown: (bool) => any,
