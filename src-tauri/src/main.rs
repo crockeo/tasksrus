@@ -38,6 +38,7 @@ pub enum View {
     Anytime,
     Someday,
     Logbook,
+    Trash,
 }
 
 #[tauri::command]
@@ -50,6 +51,7 @@ fn get_tasks_for_view(database: State<Database>, view: View) -> Result<Vec<Task>
         Anytime => database.anytime(),
         Someday => database.someday(),
         Logbook => database.logbook(),
+        Trash => Ok(vec![]), // TODO(crockeo): implement this!
     }?)
 }
 

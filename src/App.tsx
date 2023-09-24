@@ -1,4 +1,5 @@
 import classNames from "classnames";
+import { PlusCircleIcon } from "@heroicons/react/24/solid";
 import { invoke } from "@tauri-apps/api/tauri";
 import { useEffect, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
@@ -52,42 +53,46 @@ function App() {
   }
 
   return (
-    <div className="grid grid-cols-5 w-screen h-screen text-base text-stone-200">
+    <div className="grid grid-cols-5 w-screen h-screen text-base text-stone-200 overflow-y-none">
       <SearchView shown={searchShown} setShown={setSearchShown} />
 
-      <div className="bg-stone-900 col-span-1 px-3 py-5">
-        <Category mode={Mode.Inbox} currentView={currentView} setCurrentView={setCurrentView} />
+      <div className="bg-stone-900 col-span-1 h-screen">
+        <div className="flex flex-col px-3 py-5">
+          <div>
+            <Category mode={Mode.Inbox} currentView={currentView} setCurrentView={setCurrentView} />
 
-        <div className="my-4"></div>
+            <div className="my-3"></div>
 
-        <Category mode={Mode.Today} currentView={currentView} setCurrentView={setCurrentView} />
-        <Category mode={Mode.Upcoming} currentView={currentView} setCurrentView={setCurrentView} />
-        <Category mode={Mode.Anytime} currentView={currentView} setCurrentView={setCurrentView} />
-        <Category mode={Mode.Someday} currentView={currentView} setCurrentView={setCurrentView} />
+            <Category mode={Mode.Today} currentView={currentView} setCurrentView={setCurrentView} />
+            <Category mode={Mode.Upcoming} currentView={currentView} setCurrentView={setCurrentView} />
+            <Category mode={Mode.Anytime} currentView={currentView} setCurrentView={setCurrentView} />
+            <Category mode={Mode.Someday} currentView={currentView} setCurrentView={setCurrentView} />
 
-        <div className="my-4"></div>
+            <div className="my-3"></div>
 
-        <Category mode={Mode.Logbook} currentView={currentView} setCurrentView={setCurrentView} />
-        <Category mode={Mode.Trash} currentView={currentView} setCurrentView={setCurrentView} />
+            <Category mode={Mode.Logbook} currentView={currentView} setCurrentView={setCurrentView} />
+            <Category mode={Mode.Trash} currentView={currentView} setCurrentView={setCurrentView} />
 
-        <div className="my-4"></div>
+            <div className="my-3"></div>
+          </div>
 
-        <div className="flex-1">
-          {tasks.map((task) =>
-            <CategoryTask
-              key={task.id}
-              task={task}
-              currentView={currentView}
-              setCurrentView={setCurrentView}
-            />
-          )}
+          <div className="overflow-y-auto">
+            {tasks.map((task) =>
+              <CategoryTask
+                key={task.id}
+                task={task}
+                currentView={currentView}
+                setCurrentView={setCurrentView}
+              />
+            )}
+          </div>
         </div>
 
-        <div className="my-2"></div>
-
-        <div>
+        <div className="border-t border-stone-700 p-2">
           <div>{""}</div>
-          <button onClick={newTask}>+</button>
+          <button onClick={newTask}>
+            <PlusCircleIcon className="text-stone-400 w-6 h-6" />
+          </button>
         </div>
       </div>
 
@@ -155,6 +160,7 @@ function CategoryTask(props: ICategoryTaskProps) {
           "select-none",
           {
             "bg-stone-700": props.currentView == props.task.id,
+            "text-stone-400": !props.task.title,
           },
         )
       }
