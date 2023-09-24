@@ -24,7 +24,7 @@ export enum Mode {
 
 export type View = Mode | number;
 
-export function isMode(view: View): bool {
+export function isMode(view: View): boolean {
   switch (view) {
     case Mode.Inbox:
     case Mode.Today:

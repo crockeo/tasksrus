@@ -2,8 +2,8 @@ import React from "react";
 import classNames from "classnames";
 
 export interface IButtonProps {
-  onClick: (evt: React.ClickEvent<HTMLInputEvent>) => any,
-  children: [React.Element],
+  onClick: (evt: React.MouseEvent<HTMLButtonElement>) => any,
+  children: Array<React.ReactElement>,
 }
 
 function Button(props: IButtonProps) {

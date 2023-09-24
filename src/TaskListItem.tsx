@@ -5,15 +5,15 @@ import { Task } from "./types.ts";
 
 export interface ITaskListItemProps {
   task: Task,
-  onClick: (evt: React.ClickEvent<HTMLInputEvent>) => any,
-  setChecked: (checked: bool) => any,
+  onChecked: (checked: boolean) => any,
+  onClick: (evt: React.MouseEvent<HTMLSpanElement>) => any,
 }
 
 function TaskListItem(props: ITaskListItemProps) {
   let [checked, setCheckedRaw] = useState(false);
-  function setChecked(checked: bool) {
+  function setChecked(checked: boolean) {
     setCheckedRaw(checked);
-    props.setChecked(checked);
+    props.onChecked(checked);
   }
 
   let title = props.task.title;
@@ -23,15 +23,15 @@ function TaskListItem(props: ITaskListItemProps) {
 
   return (
     <div className="flex items-center py-1">
-      <input className="checkbox checkbox-sm" type="checkbox" onClick={(e) => setChecked(e.target.checked)} checked={checked} />
+      <input className="checkbox checkbox-sm" type="checkbox" onChange={(e) => setChecked(e.target.checked)} checked={checked} />
       <span className="mx-1"></span>
       <span
         className={classNames({
           "text-stone-500": checked,
           "line-through": checked,
-          "text-stone-300": !props.task.title,
+          "text-stone-400": !props.task.title,
         })}
-        onClick={() => props.onClick()}
+        onClick={(evt) => props.onClick(evt)}
       >
         {props.task.title != "" ? title : "New Task"}
       </span>

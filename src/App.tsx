@@ -5,17 +5,18 @@ import { useEffect, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
 import Button from "./Button.tsx";
+import MainView from "./MainView.tsx";
 import SearchView from "./SearchView.tsx";
-import TaskListItem from "./TaskListItem.tsx";
-import TaskView from "./TaskView.tsx";
-import { Task, Mode, View, isMode } from "./types.ts";
+import { Task, Mode, View } from "./types.ts";
 import { getIconForMode } from "./icons.tsx";
 
 function App() {
+  const [currentView, setCurrentView] = useState(Mode.Inbox as View);
   const [searchShown, setSearchShown] = useState(false);
+  const [tasks, setTasks] = useState([] as Array<Task>);
+
   useHotkeys(["mod+k"], () => { setSearchShown(true) });
 
-  const [tasks, setTasks] = useState([]);
   useEffect(() => {
     (async () => {
       setTasks(await invoke("get_root_tasks"));
@@ -42,10 +43,6 @@ function App() {
     ]);
   }
 
-  updateTask({});
-
-  const [currentView, setCurrentView] = useState(Mode.Inbox);
-
   async function newTask() {
     setTasks([
       ...tasks,
@@ -54,10 +51,10 @@ function App() {
   }
 
   return (
-    <div className="grid grid-cols-5 w-screen h-screen text-base text-stone-100 overflow-y-hidden">
+    <div className="grid grid-cols-5 w-screen h-screen text-base text-stone-100">
       <SearchView shown={searchShown} setShown={setSearchShown} />
 
-      <div className="flex flex-col bg-stone-800 col-span-1 h-screen">
+      <div className="flex flex-col bg-stone-900 col-span-1 h-screen">
         <div className="flex-1 flex flex-col overflow-y-hidden px-3 py-5">
           <div>
             <Category mode={Mode.Inbox} currentView={currentView} setCurrentView={setCurrentView} />
@@ -89,7 +86,7 @@ function App() {
           </div>
         </div>
 
-        <div className="border-t border-stone-900 p-2">
+        <div className="border-t-2 border-stone-800 p-2">
           <Button onClick={newTask}>
             <span className="inline-block"><PlusIcon className="w-4 h-4" /></span>
             <span className="mx-0.5"></span>
@@ -98,10 +95,8 @@ function App() {
         </div>
       </div>
 
-      <div className="bg-stone-700 col-span-4">
-        <div className="mx-auto w-3/4">
-          <MainView updateTask={updateTask} view={currentView} />
-        </div>
+      <div className="bg-stone-800 col-span-4">
+        <MainView updateTask={updateTask} view={currentView} />
       </div>
     </div>
   );
@@ -110,7 +105,7 @@ function App() {
 interface ICategoryProps {
   mode: Mode,
   currentView: View,
-  setCurrentView: (View) => void,
+  setCurrentView: (view: View) => void,
 }
 
 function Category(props: ICategoryProps) {
@@ -144,7 +139,7 @@ function Category(props: ICategoryProps) {
 interface ICategoryTaskProps {
   task: Task,
   currentView: View,
-  setCurrentView: (View) => void,
+  setCurrentView: (view: View) => void,
 }
 
 function CategoryTask(props: ICategoryTaskProps) {
@@ -173,99 +168,6 @@ function CategoryTask(props: ICategoryTaskProps) {
       {props.task.title.length > 0
         ? props.task.title
         : "New Task"}
-    </div>
-  );
-}
-
-interface IMainViewProps {
-  updateTask: (Task) => any,
-  view: View,
-}
-
-function MainView(props: IMainViewProps) {
-  let [tasks, setTasks] = useState(null);
-  let [taskResponse, setTaskResponse] = useState(null);
-
-  useEffect(() => {
-    if (isMode(props.view)) {
-      (async () => {
-        setTasks(await invoke("get_tasks_for_view", {view: props.view}));
-      })();
-    } else {
-      (async () => {
-        setTaskResponse(await invoke("get_task", {id: props.view}));
-      })();
-    }
-  }, [props.view]);
-
-  useEffect(() => {
-    if (taskResponse == null) {
-      return;
-    }
-    (async () => {
-      props.updateTask(taskResponse.task);
-      await invoke("update_task", {task: taskResponse.task});
-    })();
-  }, [taskResponse])
-
-  function isLoading(): bool {
-    if (isMode(props.view)) {
-      return tasks == null;
-    }
-    return taskResponse == null;
-  }
-
-  if (isLoading()) {
-    return <LoadingView />
-  } else if (isMode(props.view)) {
-    return <TaskListView mode={props.view} tasks={tasks} />
-  } else {
-    return (
-      <TaskView
-        task={taskResponse.task}
-        children={taskResponse.children}
-        parents={taskResponse.parents}
-        setTask={(task) => setTaskResponse({
-          ...taskResponse,
-          task: task,
-        })}
-      />
-    );
-  }
-}
-
-function LoadingView() {
-  return (
-    <div>...</div>
-  );
-}
-
-interface ITaskListViewProps {
-  mode: Mode,
-  tasks: [Task],
-  setCurrentView: (View) => any,
-}
-
-function TaskListView(props: ITaskListViewProps) {
-  return (
-    <div className="my-12 w-75 mx-auto">
-      <div className="mb-8 flex items-center">
-        <span className="inline-block w-7 h-7">
-          {getIconForMode(props.mode)}
-        </span>
-        <span className="mx-1"></span>
-        <span className="font-semibold text-3xl">{props.mode}</span>
-      </div>
-
-      <div className="task-list-tasks">
-        {props.tasks.map((task, i) =>
-          <TaskListItem
-            key={i}
-            task={task}
-            onClick={(_) => props.setCurrentView(task.id)}
-          />
-        )}
-      </div>
     </div>
   );
 }
