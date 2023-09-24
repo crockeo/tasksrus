@@ -9,6 +9,7 @@ import reactLogo from "./assets/react.svg";
 import { Task, Mode, View, isMode } from "./types.ts";
 import SearchView from "./SearchView.tsx";
 import TaskView from "./TaskView.tsx";
+import TaskListItem from "./TaskListItem.tsx";
 
 function App() {
   const [searchShown, setSearchShown] = useState(false);
@@ -73,7 +74,7 @@ function App() {
 
         <div className="space-small"></div>
 
-        <div className="task-list">
+        <div className="side-task-list">
           {tasks.map((task) =>
             <CategoryTask
               key={task.id}
@@ -189,7 +190,7 @@ function MainView(props: IMainViewProps) {
   if (isLoading()) {
     return <LoadingView />
   } else if (isMode(props.view)) {
-    return <TaskListView tasks={tasks} />
+    return <TaskListView mode={props.view} tasks={tasks} />
   } else {
     return (
       <TaskView
@@ -212,17 +213,25 @@ function LoadingView() {
 }
 
 interface ITaskListViewProps {
+  mode: Mode,
   tasks: [Task],
+  setCurrentView: (View) => any,
 }
 
 function TaskListView(props: ITaskListViewProps) {
   return (
-    <div>
-      {props.tasks.map((task, i) =>
-        <div key={i}>
-          {JSON.stringify(task)}
-        </div>
-      )}
+    <div className="task-list">
+      <div className="task-list-title">{props.mode}</div>
+
+      <div className="task-list-tasks">
+        {props.tasks.map((task, i) =>
+          <TaskListItem
+            key={i}
+            task={task}
+            onClick={(_) => props.setCurrentView(task.id)}
+          />
+        )}
+      </div>
     </div>
   );
 }

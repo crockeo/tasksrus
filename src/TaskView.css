@@ -7,10 +7,11 @@
 
 .title-input {
     box-sizing: border-box;
+    font-size: 1.6em;
     font-weight: bold;
-    font-size: 1.2rem;
     margin: 0.5rem;
     width: 100%;
+    padding: 0px;
 }
 
 .description-input {

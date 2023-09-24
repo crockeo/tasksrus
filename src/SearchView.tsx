@@ -48,7 +48,7 @@ function SearchView(props: ISearchViewProps) {
 
         <div className="search-output">
           {tasks.map((task, i) =>
-            <div>{task.title}</div>
+            <div key={i}>{task.title}</div>
           )}
         </div>
       </div>

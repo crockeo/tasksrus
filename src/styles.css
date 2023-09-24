@@ -1,4 +1,6 @@
 :root {
+    cursor: default;
+
     --foreground: #2f2f2f;
     --foreground-lowlight: #404040;
     /* TODO: make this a real color */
