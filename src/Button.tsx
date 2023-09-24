@@ -15,6 +15,7 @@ function Button(props: IButtonProps) {
         "px-2",
         "py-1",
         "rounded",
+        "cursor-default",
 
         "hover:border",
         "hover:m-0",
