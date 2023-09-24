@@ -52,10 +52,10 @@ function App() {
   }
 
   return (
-    <div className="flex flex-row w-screen h-screen text-base text-stone-200">
+    <div className="grid grid-cols-5 w-screen h-screen text-base text-stone-200">
       <SearchView shown={searchShown} setShown={setSearchShown} />
 
-      <div className="bg-stone-900 flex-basis-0 px-3 py-5">
+      <div className="bg-stone-900 col-span-1 px-3 py-5">
         <Category mode={Mode.Inbox} currentView={currentView} setCurrentView={setCurrentView} />
 
         <div className="my-4"></div>
@@ -91,7 +91,7 @@ function App() {
         </div>
       </div>
 
-      <div className="bg-stone-800 flex-1">
+      <div className="bg-stone-800 col-span-4">
         <div className="mx-auto w-3/4">
           <MainView updateTask={updateTask} view={currentView} />
         </div>
@@ -146,10 +146,17 @@ function CategoryTask(props: ICategoryTaskProps) {
   return (
     <div
       className={
-        classNames("task", {
-          "task-empty-title": props.task.title.length == 0,
-          "task-selected": props.currentView == props.task.id,
-        })
+        classNames(
+          "cursor-default",
+          "font-medium",
+          "px-2",
+          "py-0.5",
+          "rounded",
+          "select-none",
+          {
+            "bg-stone-700": props.currentView == props.task.id,
+          },
+        )
       }
       onClick={(_) => {
         props.setCurrentView(props.task.id)
