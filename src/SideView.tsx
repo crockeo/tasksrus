@@ -1,18 +1,37 @@
 import classNames from "classnames";
 import { PlusIcon } from "@heroicons/react/24/solid";
+import { useHotkeys } from "react-hotkeys-hook";
 
 import Button from "./Button.tsx";
-import { Mode, Task, View } from "./types.ts";
+import { Mode, Task, View, isMode } from "./types.ts";
 import { getIconForMode } from "./icons.tsx";
+import { iso8601Now } from "./utils.ts";
 
 export interface ISideViewProps {
   newTask: () => any,
   setView: (view: View) => any,
   tasks: Array<Task>,
+  updateTask: (task: Task) => any,
   view: View,
 }
 
 function SideView(props: ISideViewProps) {
+  useHotkeys(["mod+k"], () => {
+    if (isMode(props.view)) {
+      return;
+    }
+    let i;
+    for (i = 0; i < props.tasks.length; i++) {
+      if (props.tasks[i].id == props.view) {
+        break;
+      }
+    }
+
+    let task = props.tasks[i];
+    task.completed = iso8601Now();
+    props.updateTask(task);
+  });
+
   return (
     <div className="flex flex-col h-full px-3 py-5">
       <div>
@@ -33,7 +52,7 @@ function SideView(props: ISideViewProps) {
         <div className="my-3"></div>
       </div>
 
-      <div className="overflow-y-scroll">
+      <div className="grow overflow-y-scroll">
         {props.tasks.map((task) =>
           <CategoryTask
             key={task.id}
@@ -103,7 +122,6 @@ function CategoryTask(props: ICategoryTaskProps) {
       className={
         classNames(
           "cursor-default",
-          "font-medium",
           "px-2",
           "py-0.5",
           "rounded",

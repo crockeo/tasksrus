@@ -219,9 +219,7 @@ impl Database {
     pub fn root_tasks(&self) -> anyhow::Result<Vec<Task>> {
         let conn = self.conn.lock().unwrap();
 
-        let mut statement = conn.prepare(
-            "SELECT * FROM tasks WHERE NOT EXISTS (SELECT * FROM links WHERE links.to_id = tasks.id)",
-        )?;
+        let mut statement = conn.prepare(include_str!("sql/queries/root_tasks.sql"))?;
         let rows = statement.query(())?;
 
         Task::from_rows(rows)

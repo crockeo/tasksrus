@@ -21,7 +21,11 @@ function App() {
     })();
   }, []);
 
-  function updateTask(task: Task) {
+  async function getRootTasks() { setTasks(await invoke("get_root_tasks")); }
+
+  async function updateTask(task: Task) {
+    await invoke("update_task", {task: task});
+
     let i;
     for (i = 0; i < tasks.length; i++) {
       if (task.id == tasks[i].id) {
@@ -34,19 +38,17 @@ function App() {
       return;
     }
 
-    setTasks([
-      ...tasks.slice(0, i),
-      task,
-      ...tasks.slice(i + 1, tasks.length),
-    ]);
+    getRootTasks();
   }
 
   async function newTask() {
-    setTasks([
-      ...tasks,
-      await invoke("new_task"),
-    ]);
+    await invoke("new_task");
+    getRootTasks();
   }
+
+  useEffect(() => {
+    getRootTasks();
+  }, []);
 
   return (
     <div
@@ -66,6 +68,7 @@ function App() {
           newTask={newTask}
           setView={setCurrentView}
           tasks={tasks}
+          updateTask={updateTask}
           view={currentView}
         />
       </div>

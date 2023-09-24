@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
+import classNames from "classnames";
 
-import TaskListItem from "./TaskListItem.tsx";
 import TaskView from "./TaskView.tsx";
 import { GetTaskResponse, Task, Mode, View, isMode } from "./types.ts";
 import { getIconForMode } from "./icons.tsx";
+import { iso8601Now } from "./utils.ts";
 
 export interface IMainViewProps {
   updateTask: (task: Task) => any,
@@ -27,33 +28,35 @@ function MainView(props: IMainViewProps) {
     }
   }, [props.view]);
 
-  useEffect(() => {
+  function setTask(task: Task) {
     if (taskResponse == null) {
       return;
     }
-    (async () => {
-      props.updateTask(taskResponse.task);
-      await invoke("update_task", {task: taskResponse.task});
-    })();
-  }, [taskResponse])
+    setTaskResponse({
+      ...taskResponse,
+      task: task,
+    });
+    props.updateTask(task);
+  }
 
   let view;
   if (isMode(props.view) && tasks != null) {
     let mode = props.view as Mode;
-    view = <TaskListView mode={mode} tasks={tasks} setCurrentView={(_) => { /*TODO*/ }}/>
+    view = (
+      <TaskListView
+        mode={mode}
+        setCurrentView={(_) => { /*TODO*/ }}
+        tasks={tasks}
+        updateTask={props.updateTask}
+      />
+    );
   } else if (taskResponse != null) {
     view = (
       <TaskView
         task={taskResponse.task}
         children={taskResponse.children}
         parents={taskResponse.parents}
-        setTask={(task: Task) => {
-          if (taskResponse == null) { return; }
-          setTaskResponse({
-            ...taskResponse,
-            task: task,
-          })}
-        }
+        setTask={setTask}
       />
     );
   } else {
@@ -75,11 +78,21 @@ function LoadingView() {
 
 interface ITaskListViewProps {
   mode: Mode,
-  tasks: [Task],
   setCurrentView: (view: View) => any,
+  tasks: [Task],
+  updateTask: (task: Task) => any,
 }
 
 function TaskListView(props: ITaskListViewProps) {
+  function completeTask(task: Task, completed: boolean) {
+    if (completed) {
+      task.completed = iso8601Now();
+    } else {
+      task.completed = null;
+    }
+    props.updateTask(task);
+  }
+
   return (
     <div className="flex-1 flex flex-col my-12 w-75 overflow-y-hidden">
       <div className="mb-8 flex items-center">
@@ -95,11 +108,47 @@ function TaskListView(props: ITaskListViewProps) {
           <TaskListItem
             key={i}
             task={task}
-            onChecked={(_) => {}}
+            onChecked={(checked) => completeTask(task, checked)}
             onClick={(_) => props.setCurrentView(task.id)}
           />
         )}
       </div>
+    </div>
+  );
+}
+
+interface ITaskListItemProps {
+  task: Task,
+  onChecked: (checked: boolean) => any,
+  onClick: (evt: React.MouseEvent<HTMLSpanElement>) => any,
+}
+
+function TaskListItem(props: ITaskListItemProps) {
+  let [checked, setCheckedRaw] = useState(!!props.task.completed);
+  function setChecked(checked: boolean) {
+    setCheckedRaw(checked);
+    props.onChecked(checked);
+  }
+
+  let title = props.task.title;
+  if (title == "") {
+    title = "New Task";
+  }
+
+  return (
+    <div className="flex items-center py-1">
+      <input className="checkbox checkbox-sm" type="checkbox" onChange={(e) => setChecked(e.target.checked)} checked={checked} />
+      <span className="mx-1"></span>
+      <span
+        className={classNames({
+          "text-stone-500": checked,
+          "line-through": checked,
+          "text-stone-400": !props.task.title,
+        })}
+        onClick={(evt) => props.onClick(evt)}
+      >
+        {props.task.title != "" ? title : "New Task"}
+      </span>
     </div>
   );
 }
