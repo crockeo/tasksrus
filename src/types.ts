@@ -1,15 +1,15 @@
 export interface Task {
-  id: number,
-  title: string,
-  description: string,
-  scheduled: string,
-  completed: string | null,
+  id: number;
+  title: string;
+  description: string;
+  scheduled: string;
+  completed: string | null;
 }
 
 export interface GetTaskResponse {
-  task: Task,
-  children: [Task],
-  parents: [Task],
+  task: Task;
+  children: [Task];
+  parents: [Task];
 }
 
 export enum Mode {

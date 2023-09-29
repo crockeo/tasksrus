@@ -2,8 +2,8 @@ import React from "react";
 import classNames from "classnames";
 
 export interface IButtonProps {
-  onClick: (evt: React.MouseEvent<HTMLButtonElement>) => any,
-  children: Array<React.ReactElement>,
+  onClick: (evt: React.MouseEvent<HTMLButtonElement>) => any;
+  children: Array<React.ReactElement>;
 }
 
 function Button(props: IButtonProps) {
@@ -26,9 +26,7 @@ function Button(props: IButtonProps) {
       )}
       onClick={props.onClick}
     >
-      <div className="flex items-center">
-        {...props.children}
-      </div>
+      <div className="flex items-center">{...props.children}</div>
     </button>
   );
 }

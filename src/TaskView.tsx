@@ -1,14 +1,10 @@
-import { invoke } from "@tauri-apps/api/tauri";
-import { useDebounce } from "usehooks-ts";
-import { useEffect, useState } from "react";
-
-import { Task } from "./types.ts"
+import { Task } from "./types.ts";
 
 export interface ITaskViewProps {
-  task: Task,
-  children: [Task],
-  parents: [Task],
-  setTask: (Task) => any,
+  children: Task[];
+  parents: Task[];
+  task: Task;
+  updateTask: (task: Task) => any;
 }
 
 function TaskView(props: ITaskViewProps) {
@@ -16,28 +12,30 @@ function TaskView(props: ITaskViewProps) {
     <div className="task-view">
       <input
         className="title-input"
-        onChange={(e) => props.setTask({
-          ...props.task,
-          title: e.target.value,
-        })}
+        onChange={(e) =>
+          props.updateTask({
+            ...props.task,
+            title: e.target.value,
+          })
+        }
         placeholder="New Task"
         value={props.task.title}
       />
 
       <div>
-        {props.parents.map((parent, id) =>
-          <div key={id}>
-            {parent.title}
-          </div>
-        )}
+        {props.parents.map((parent, id) => (
+          <div key={id}>{parent.title}</div>
+        ))}
       </div>
 
       <textarea
         className="description-input"
-        onChange={(e) => props.setTask({
-          ...props.task,
-          description: e.target.value,
-        })}
+        onChange={(e) =>
+          props.updateTask({
+            ...props.task,
+            description: e.target.value,
+          })
+        }
         placeholder="Notes"
         value={props.task.description}
       />

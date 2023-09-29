@@ -77,7 +77,7 @@ fn get_task(database: State<Database>, id: TaskID) -> Result<GetTaskResponse, Er
     let task = database.get_task(id)?;
     let children = database.children(&task)?;
     let parents = database.parents(&task)?;
-    Ok(GetTaskResponse{
+    Ok(GetTaskResponse {
         task,
         children,
         parents,

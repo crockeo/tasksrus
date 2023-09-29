@@ -6,48 +6,78 @@ import { useHotkeys } from "react-hotkeys-hook";
 import SideView from "./SideView.tsx";
 import MainView from "./MainView.tsx";
 import SearchView from "./SearchView.tsx";
-import { Task, Mode, View } from "./types.ts";
+import { Task, Mode, View, isMode } from "./types.ts";
+
+/*
+
+Keep all of the state top-level
+- Current view
+- Side bar tasks
+- Current view tasks
+
+Support events:
+
+- Set current view
+  - Fetch the contents of the new view
+  - Then set the current view to be the new view AND set the current view tasks of the current view
+
+- Update task
+
+- Add task
+
+And then pass allllll of this state down to the various components.
+
+ */
 
 function App() {
-  const [currentView, setCurrentView] = useState(Mode.Inbox as View);
-  const [searchShown, setSearchShown] = useState(false);
-  const [tasks, setTasks] = useState([] as Array<Task>);
+  const [view, rawSetView] = useState(Mode.Inbox as View);
+  const [sideBarTasks, setSideBarTasks] = useState([] as Array<Task>);
+  const [viewTasks, setViewTasks] = useState([] as Array<Task>);
 
-  useHotkeys(["mod+f"], () => { setSearchShown(true) });
+  async function getTasksForView(view: View): Promise<Array<Task>> {
+    if (isMode(view)) {
+      return await invoke("get_tasks_for_view", { view: view });
+    }
+    return await invoke("get_task", { id: view });
+  }
 
-  useEffect(() => {
-    (async () => {
-      setTasks(await invoke("get_root_tasks"));
-    })();
-  }, []);
+  async function setView(view: View) {
+    let newViewTasks: Array<Task> = await getTasksForView(view);
+    rawSetView(view);
+    setViewTasks(newViewTasks);
+  }
 
-  async function getRootTasks() { setTasks(await invoke("get_root_tasks")); }
-
-  async function updateTask(task: Task) {
-    await invoke("update_task", {task: task});
-
-    let i;
-    for (i = 0; i < tasks.length; i++) {
-      if (task.id == tasks[i].id) {
-        break;
+  function containsTask(tasks: Array<Task>, task: Task): boolean {
+    for (let i = 0; i < tasks.length; i++) {
+      if (tasks[i].id == task.id) {
+        return true;
       }
     }
-    if (i == tasks.length) {
-      // That means we're editing a task which is not present in the task list,
-      // so we don't need to update it.
-      return;
-    }
+    return false;
+  }
 
-    getRootTasks();
+  async function updateTask(task: Task) {
+    await invoke("update_task", { task: task });
+    if (containsTask(sideBarTasks, task)) {
+      setSideBarTasks(await invoke("get_root_tasks"));
+    }
+    if (containsTask(viewTasks, task)) {
+      setViewTasks(await getTasksForView(view));
+    }
   }
 
   async function newTask() {
     await invoke("new_task");
-    getRootTasks();
+    if (view == Mode.Inbox) {
+      setViewTasks(await getTasksForView(view));
+    }
   }
 
   useEffect(() => {
-    getRootTasks();
+    (async () => {
+      setSideBarTasks(await invoke("get_root_tasks"));
+      setViewTasks(await getTasksForView(view));
+    })();
   }, []);
 
   return (
@@ -61,20 +91,18 @@ function App() {
         "w-screen",
       )}
     >
-      <SearchView shown={searchShown} setShown={setSearchShown} />
-
       <div className="bg-stone-900 col-span-1 h-screen">
         <SideView
           newTask={newTask}
-          setView={setCurrentView}
-          tasks={tasks}
+          setView={setView}
+          tasks={sideBarTasks}
           updateTask={updateTask}
-          view={currentView}
+          view={view}
         />
       </div>
 
       <div className="bg-stone-800 col-span-4 h-screen">
-        <MainView updateTask={updateTask} view={currentView} />
+        <MainView tasks={viewTasks} updateTask={updateTask} view={view} />
       </div>
     </div>
   );

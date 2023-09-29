@@ -5,8 +5,8 @@ import { useEffect, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 
 export interface ISearchViewProps {
-  shown: bool,
-  setShown: (bool) => any,
+  shown: bool;
+  setShown: (bool) => any;
 }
 
 function SearchView(props: ISearchViewProps) {
@@ -23,7 +23,7 @@ function SearchView(props: ISearchViewProps) {
         setTasks([]);
         return;
       }
-      let searchedTasks = await invoke("search", {input: input});
+      let searchedTasks = await invoke("search", { input: input });
       setTasks(searchedTasks);
     })();
   }, [input]);
@@ -31,11 +31,16 @@ function SearchView(props: ISearchViewProps) {
   return (
     <div
       className={classNames("search-view", {
-        "hidden": !props.shown,
+        hidden: !props.shown,
       })}
       onClick={(_) => props.setShown(false)}
     >
-      <div className="search-area" onClick={(e) => {e.stopPropagation()}}>
+      <div
+        className="search-area"
+        onClick={(e) => {
+          e.stopPropagation();
+        }}
+      >
         <input
           className="search-input"
           onChange={(e) => setInput(e.target.value)}
@@ -45,9 +50,9 @@ function SearchView(props: ISearchViewProps) {
         />
 
         <div className="search-output">
-          {tasks.map((task, i) =>
+          {tasks.map((task, i) => (
             <div key={i}>{task.title}</div>
-          )}
+          ))}
         </div>
       </div>
     </div>

@@ -3,11 +3,11 @@ use chrono::Local;
 use chrono::NaiveDate;
 use rusqlite::Connection;
 use rusqlite::Row;
+use serde::Deserialize;
 use serde::Serialize;
 use std::path::Path;
 use std::str::FromStr;
 use std::sync::Mutex;
-use serde::Deserialize;
 
 pub type TaskID = i64;
 
