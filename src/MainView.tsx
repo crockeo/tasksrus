@@ -1,10 +1,10 @@
 import classNames from "classnames";
 import { useState } from "react";
 
-import Button from "./Button.tsx";
 import { Task, Mode, View, isMode } from "./types.ts";
 import { getIconForMode } from "./icons.tsx";
 import { iso8601Now } from "./utils.ts";
+import { useHotkeys } from "react-hotkeys-hook";
 
 export interface IMainViewProps {
   setView: (view: View) => any;
@@ -46,10 +46,57 @@ interface ITaskListViewProps {
 }
 
 function TaskListView(props: ITaskListViewProps) {
-  const [selected, setSelected] = useState(null);
+  const [selected, setSelected] = useState(null as number | null);
+
+  useHotkeys(["escape", "enter"], () => {
+    setSelected(null);
+  });
+
+  useHotkeys("up", () => {
+    if (props.tasks.length == 0) {
+      return;
+    }
+
+    if (selected == 0) {
+      return;
+    }
+
+    if (selected == null) {
+      setSelected(props.tasks.length - 1);
+      return;
+    }
+
+    setSelected(selected - 1);
+  });
+
+  useHotkeys("down", () => {
+    if (props.tasks.length == 0) {
+      return;
+    }
+
+    if (selected == props.tasks.length - 1) {
+      return;
+    }
+
+    if (selected == null) {
+      setSelected(0);
+      return;
+    }
+
+    setSelected(selected + 1);
+  });
 
   return (
-    <div className="flex-1 flex flex-col my-12 w-75 overflow-y-hidden">
+    <div
+      className={classNames(
+        "flex-1 flex flex-col my-12 w-75 overflow-y-hidden",
+        "transition",
+        {
+          "bg-stone-850": selected != null,
+        },
+      )}
+      onClick={(_) => setSelected(null)}
+    >
       <div className="mb-8 flex items-center">
         <span className="inline-block w-7 h-7">
           {getIconForMode(props.mode)}
@@ -62,10 +109,13 @@ function TaskListView(props: ITaskListViewProps) {
         {props.tasks.map((task, i) => (
           <TaskListItem
             key={i}
+            onClick={(evt) => {
+              evt.stopPropagation();
+              setSelected(i);
+            }}
+            selected={selected == i}
             task={task}
             updateTask={props.updateTask}
-            selected={selected == task.id}
-            onClick={(_) => props.setView(task.id)}
           />
         ))}
       </div>
@@ -91,32 +141,100 @@ function TaskListItem(props: ITaskListItemProps) {
     props.updateTask(task);
   }
 
-  let title = props.task.title;
-  if (title == "") {
-    title = "New Task";
-  }
-
   let checked = props.task.completed != null;
-  return (
-    <div className="flex items-center py-1">
+
+  let checkbox = (
+    <>
       <input
         className="checkbox checkbox-sm"
         type="checkbox"
         onChange={(e) => setChecked(e.target.checked)}
-        checked={checked}
       />
       <span className="mx-1"></span>
-      <Button onClick={(evt) => props.onClick(evt)}>
-        <span
-          className={classNames({
-            "text-stone-500": checked,
-            "line-through": checked,
-            "text-stone-400": !props.task.title,
-          })}
-        >
-          {props.task.title != "" ? title : "New Task"}
-        </span>
-      </Button>
+    </>
+  );
+
+  let title;
+  if (props.selected) {
+    title = (
+      <input
+        className="bg-transparent grow focus:outline-none"
+        onChange={(e) =>
+          props.updateTask({
+            ...props.task,
+            title: e.target.value,
+          })
+        }
+        placeholder="New Task"
+        value={props.task.title}
+      />
+    );
+  } else {
+    title = (
+      <span
+        className={classNames({
+          "text-stone-500": checked,
+          "line-through": checked,
+          "text-stone-400": !props.task.title,
+        })}
+      >
+        {!!props.task.title ? props.task.title : "New Task"}
+      </span>
+    );
+  }
+
+  let className = classNames(
+    "border",
+    "border-stone-600",
+    "px-2",
+    "py-1",
+    "my-1",
+    "rounded",
+    "transition-all",
+  );
+  if (props.selected) {
+    className = classNames(className, "bg-stone-600", "shadow-lg");
+  } else {
+    className = classNames(
+      className,
+      "active:bg-stone-600",
+      "border-transparent",
+      "cursor-default",
+      "hover:border-stone-600",
+    );
+  }
+
+  return (
+    <div className={className} onClick={(evt) => props.onClick(evt)}>
+      <div className="flex flex-row items-center">
+        {checkbox}
+        {title}
+      </div>
+
+      {props.selected ? (
+        <TaskListItemBody task={props.task} updateTask={props.updateTask} />
+      ) : (
+        <></>
+      )}
+    </div>
+  );
+}
+
+interface ITaskListItemBodyProps {
+  task: Task;
+  updateTask: (task: Task) => any;
+}
+
+function TaskListItemBody(props: ITaskListItemBodyProps) {
+  return (
+    <div className="flex pt-2 pb-1">
+      <textarea
+        className="grow p-1 rounded focus:outline-none"
+        onChange={(evt) =>
+          props.updateTask({ ...props.task, description: evt.target.value })
+        }
+        value={props.task.description}
+      ></textarea>
     </div>
   );
 }

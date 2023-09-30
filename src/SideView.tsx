@@ -92,7 +92,7 @@ function SideView(props: ISideViewProps) {
       </div>
 
       <div className="border-t border-stone-800 pt-2">
-        <Button onClick={props.newTask} color="blue-500">
+        <Button onClick={props.newTask}>
           <span className="inline-block">
             <PlusIcon className="w-4 h-4" />
           </span>
@@ -116,13 +116,19 @@ function Category(props: ICategoryProps) {
     <div
       className={classNames(
         "cursor-default",
+        "duration-100",
         "flex",
         "font-medium",
         "items-center",
+        "my-0.5",
         "px-2",
         "py-0.5",
         "rounded",
         "select-none",
+        "transition-color",
+
+        "active:bg-stone-700",
+
         {
           "bg-stone-700": props.currentView == props.mode,
         },
