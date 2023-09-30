@@ -7,6 +7,7 @@ import { iso8601Now } from "./utils.ts";
 import { useHotkeys } from "react-hotkeys-hook";
 import { ArrowRightIcon } from "@heroicons/react/24/solid";
 import Button from "./Button.tsx";
+import TextArea from "./components/TextArea.tsx";
 
 export interface IMainViewProps {
   setView: (view: View) => any;
@@ -252,13 +253,13 @@ function TaskListItemBody(props: ITaskListItemBodyProps) {
 
   return (
     <div className="flex flex-col py-2">
-      <textarea
+      <TextArea
         className="bg-transparent grow p-1 rounded focus:outline-none"
         onChange={(evt) =>
           props.updateTask({ ...props.task, description: evt.target.value })
         }
         value={props.task.description}
-      ></textarea>
+      ></TextArea>
 
       <div className="my-1"></div>
 
