@@ -92,7 +92,7 @@ function SideView(props: ISideViewProps) {
       </div>
 
       <div className="border-t border-stone-800 pt-2">
-        <Button onClick={props.newTask}>
+        <Button onClick={props.newTask} color="blue-500">
           <span className="inline-block">
             <PlusIcon className="w-4 h-4" />
           </span>

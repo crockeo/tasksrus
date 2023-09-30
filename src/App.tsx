@@ -43,7 +43,6 @@ function App() {
 
   async function setView(view: View) {
     let newViewTasks: Array<Task> = await getTasksForView(view);
-    console.log(newViewTasks);
     rawSetView(view);
     setViewTasks(newViewTasks);
   }

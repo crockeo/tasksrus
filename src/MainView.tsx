@@ -1,6 +1,7 @@
 import classNames from "classnames";
 import { useState } from "react";
 
+import Button from "./Button.tsx";
 import { Task, Mode, View, isMode } from "./types.ts";
 import { getIconForMode } from "./icons.tsx";
 import { iso8601Now } from "./utils.ts";
@@ -64,10 +65,7 @@ function TaskListView(props: ITaskListViewProps) {
             task={task}
             updateTask={props.updateTask}
             selected={selected == task.id}
-            onClick={(_) => {
-              console.log("hello world!");
-              props.setView(task.id);
-            }}
+            onClick={(_) => props.setView(task.id)}
           />
         ))}
       </div>
@@ -108,16 +106,17 @@ function TaskListItem(props: ITaskListItemProps) {
         checked={checked}
       />
       <span className="mx-1"></span>
-      <span
-        className={classNames({
-          "text-stone-500": checked,
-          "line-through": checked,
-          "text-stone-400": !props.task.title,
-        })}
-        onClick={(evt) => props.onClick(evt)}
-      >
-        {props.task.title != "" ? title : "New Task"}
-      </span>
+      <Button onClick={(evt) => props.onClick(evt)}>
+        <span
+          className={classNames({
+            "text-stone-500": checked,
+            "line-through": checked,
+            "text-stone-400": !props.task.title,
+          })}
+        >
+          {props.task.title != "" ? title : "New Task"}
+        </span>
+      </Button>
     </div>
   );
 }
@@ -129,9 +128,9 @@ interface ITaskViewProps {
 
 function TaskView(props: ITaskViewProps) {
   return (
-    <div className="task-view">
+    <div className="flex-1 flex flex-col my-12 w-75 overflow-y-hidden">
       <input
-        className="title-input"
+        className="bg-transparent font-bold mb-8 text-3xl"
         onChange={(e) =>
           props.updateTask({
             ...props.task,

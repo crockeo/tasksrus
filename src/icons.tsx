@@ -4,7 +4,6 @@ import {
   CircleStackIcon,
   InboxIcon,
   StarIcon,
-  QuestionMarkCircleIcon,
   DocumentCheckIcon,
   TrashIcon,
 } from "@heroicons/react/24/solid";
@@ -33,5 +32,5 @@ export function getIconForMode(mode: Mode) {
     case Mode.Trash:
       return <TrashIcon className="text-neutral-300" />;
   }
-  throw Error("Invalid mode:", mode);
+  throw Error(`Invalid mode: ${mode}`);
 }
