@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Task, Mode, View, isMode } from "./types.ts";
 import { getIconForMode } from "./icons.tsx";
@@ -50,6 +50,8 @@ interface ITaskListViewProps {
 
 function TaskListView(props: ITaskListViewProps) {
   const [selected, setSelected] = useState(null as number | null);
+
+  useEffect(() => setSelected(null), [props.mode]);
 
   useHotkeys(["escape", "enter"], () => {
     setSelected(null);
