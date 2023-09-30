@@ -113,7 +113,7 @@ function TaskListView(props: ITaskListViewProps) {
       <div className="overflow-y-scroll">
         {props.tasks.map((task, i) => (
           <TaskListItem
-            key={i}
+            key={task.id}
             onClick={(evt) => {
               evt.stopPropagation();
               setSelected(i);
