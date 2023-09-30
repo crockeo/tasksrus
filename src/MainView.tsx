@@ -1,11 +1,12 @@
 import classNames from "classnames";
+import { useState } from "react";
 
-import TaskView from "./TaskView.tsx";
 import { Task, Mode, View, isMode } from "./types.ts";
 import { getIconForMode } from "./icons.tsx";
 import { iso8601Now } from "./utils.ts";
 
 export interface IMainViewProps {
+  setView: (view: View) => any;
   tasks: Task[];
   updateTask: (task: Task) => any;
   view: View;
@@ -20,22 +21,13 @@ function MainView(props: IMainViewProps) {
     view = (
       <TaskListView
         mode={mode}
-        setCurrentView={(_) => {
-          /*TODO*/
-        }}
+        setView={props.setView}
         tasks={props.tasks}
         updateTask={props.updateTask}
       />
     );
   } else {
-    view = (
-      <TaskView
-        children={[]}
-        parents={[]}
-        task={props.tasks[0]}
-        updateTask={props.updateTask}
-      />
-    );
+    view = <TaskView task={props.tasks[0]} updateTask={props.updateTask} />;
   }
 
   return <div className="flex flex-col h-full mx-auto w-3/4">{view}</div>;
@@ -47,12 +39,14 @@ function LoadingView() {
 
 interface ITaskListViewProps {
   mode: Mode;
-  setCurrentView: (view: View) => any;
+  setView: (view: View) => any;
   tasks: Task[];
   updateTask: (task: Task) => any;
 }
 
 function TaskListView(props: ITaskListViewProps) {
+  const [selected, setSelected] = useState(null);
+
   return (
     <div className="flex-1 flex flex-col my-12 w-75 overflow-y-hidden">
       <div className="mb-8 flex items-center">
@@ -69,7 +63,11 @@ function TaskListView(props: ITaskListViewProps) {
             key={i}
             task={task}
             updateTask={props.updateTask}
-            onClick={(_) => props.setCurrentView(task.id)}
+            selected={selected == task.id}
+            onClick={(_) => {
+              console.log("hello world!");
+              props.setView(task.id);
+            }}
           />
         ))}
       </div>
@@ -79,6 +77,7 @@ function TaskListView(props: ITaskListViewProps) {
 
 interface ITaskListItemProps {
   onClick: (evt: React.MouseEvent<HTMLSpanElement>) => any;
+  selected: boolean;
   task: Task;
   updateTask: (task: Task) => any;
 }
@@ -119,6 +118,49 @@ function TaskListItem(props: ITaskListItemProps) {
       >
         {props.task.title != "" ? title : "New Task"}
       </span>
+    </div>
+  );
+}
+
+interface ITaskViewProps {
+  task: Task;
+  updateTask: (task: Task) => any;
+}
+
+function TaskView(props: ITaskViewProps) {
+  return (
+    <div className="task-view">
+      <input
+        className="title-input"
+        onChange={(e) =>
+          props.updateTask({
+            ...props.task,
+            title: e.target.value,
+          })
+        }
+        placeholder="New Task"
+        value={props.task.title}
+      />
+
+      <textarea
+        className="description-input"
+        onChange={(e) =>
+          props.updateTask({
+            ...props.task,
+            description: e.target.value,
+          })
+        }
+        placeholder="Notes"
+        value={props.task.description}
+      />
+
+      <div className="time-zone">
+        <div></div>
+        <div>
+          <span>{props.task.scheduled}</span>
+          <span className="dot"></span>
+        </div>
+      </div>
     </div>
   );
 }

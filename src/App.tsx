@@ -38,11 +38,12 @@ function App() {
     if (isMode(view)) {
       return await invoke("get_tasks_for_view", { view: view });
     }
-    return await invoke("get_task", { id: view });
+    return [await invoke("get_task", { id: view })];
   }
 
   async function setView(view: View) {
     let newViewTasks: Array<Task> = await getTasksForView(view);
+    console.log(newViewTasks);
     rawSetView(view);
     setViewTasks(newViewTasks);
   }
@@ -102,7 +103,12 @@ function App() {
       </div>
 
       <div className="bg-stone-800 col-span-4 h-screen">
-        <MainView tasks={viewTasks} updateTask={updateTask} view={view} />
+        <MainView
+          setView={setView}
+          tasks={viewTasks}
+          updateTask={updateTask}
+          view={view}
+        />
       </div>
     </div>
   );

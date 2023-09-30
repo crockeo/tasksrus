@@ -65,23 +65,9 @@ fn new_task(database: State<Database>) -> Result<Task, Error> {
     Ok(database.new_task()?)
 }
 
-#[derive(Serialize)]
-struct GetTaskResponse {
-    task: Task,
-    children: Vec<Task>,
-    parents: Vec<Task>,
-}
-
 #[tauri::command]
-fn get_task(database: State<Database>, id: TaskID) -> Result<GetTaskResponse, Error> {
-    let task = database.get_task(id)?;
-    let children = database.children(&task)?;
-    let parents = database.parents(&task)?;
-    Ok(GetTaskResponse {
-        task,
-        children,
-        parents,
-    })
+fn get_task(database: State<Database>, id: TaskID) -> Result<Task, Error> {
+    Ok(database.get_task(id)?)
 }
 
 #[tauri::command]
