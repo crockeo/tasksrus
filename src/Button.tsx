@@ -4,6 +4,7 @@ import classNames from "classnames";
 export interface IButtonProps {
   onClick: (evt: React.MouseEvent<HTMLButtonElement>) => any;
   children: React.ReactElement | Array<React.ReactElement>;
+  className?: string;
 }
 
 function Button(props: IButtonProps) {
@@ -18,11 +19,11 @@ function Button(props: IButtonProps) {
         "duration-100",
         "flex",
         "flex-row",
-        "grow",
-        "px-2",
+        "px-1",
         "py-1",
         "rounded",
         "transition-color",
+        !!props.className ? props.className : "",
 
         "hover:border-stone-600",
         "active:bg-stone-600",

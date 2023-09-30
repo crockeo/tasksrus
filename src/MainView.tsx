@@ -5,6 +5,8 @@ import { Task, Mode, View, isMode } from "./types.ts";
 import { getIconForMode } from "./icons.tsx";
 import { iso8601Now } from "./utils.ts";
 import { useHotkeys } from "react-hotkeys-hook";
+import { ArrowRightIcon } from "@heroicons/react/24/solid";
+import Button from "./Button.tsx";
 
 export interface IMainViewProps {
   setView: (view: View) => any;
@@ -114,6 +116,7 @@ function TaskListView(props: ITaskListViewProps) {
               setSelected(i);
             }}
             selected={selected == i}
+            setView={props.setView}
             task={task}
             updateTask={props.updateTask}
           />
@@ -126,6 +129,7 @@ function TaskListView(props: ITaskListViewProps) {
 interface ITaskListItemProps {
   onClick: (evt: React.MouseEvent<HTMLSpanElement>) => any;
   selected: boolean;
+  setView: (view: View) => any;
   task: Task;
   updateTask: (task: Task) => any;
 }
@@ -185,15 +189,14 @@ function TaskListItem(props: ITaskListItemProps) {
 
   let className = classNames(
     "border",
-    "border-stone-600",
+    "border-stone-800",
     "px-2",
     "py-1",
     "my-1",
     "rounded",
-    "transition-all",
   );
   if (props.selected) {
-    className = classNames(className, "bg-stone-600", "shadow-lg");
+    className = classNames(className, "border-stone-600", "shadow-xl");
   } else {
     className = classNames(
       className,
@@ -201,6 +204,7 @@ function TaskListItem(props: ITaskListItemProps) {
       "border-transparent",
       "cursor-default",
       "hover:border-stone-600",
+      "transition-all",
     );
   }
 
@@ -212,7 +216,11 @@ function TaskListItem(props: ITaskListItemProps) {
       </div>
 
       {props.selected ? (
-        <TaskListItemBody task={props.task} updateTask={props.updateTask} />
+        <TaskListItemBody
+          setView={props.setView}
+          task={props.task}
+          updateTask={props.updateTask}
+        />
       ) : (
         <></>
       )}
@@ -221,20 +229,52 @@ function TaskListItem(props: ITaskListItemProps) {
 }
 
 interface ITaskListItemBodyProps {
+  setView: (view: View) => any;
   task: Task;
   updateTask: (task: Task) => any;
 }
 
 function TaskListItemBody(props: ITaskListItemBodyProps) {
+  // TODO: complete this list!
+  // also it's showing Someday for the inbox tasks,
+  // but they should be inbox.
+  // need to get parent/child information
+  let mode;
+  if (props.task.completed != null) {
+    mode = Mode.Logbook;
+  } else if (props.task.scheduled == Mode.Anytime) {
+    mode = Mode.Anytime;
+  } else if (props.task.scheduled == Mode.Someday) {
+    mode = Mode.Someday;
+  } else {
+    mode = Mode.Inbox;
+  }
+
   return (
-    <div className="flex pt-2 pb-1">
+    <div className="flex flex-col py-2">
       <textarea
-        className="grow p-1 rounded focus:outline-none"
+        className="bg-transparent grow p-1 rounded focus:outline-none"
         onChange={(evt) =>
           props.updateTask({ ...props.task, description: evt.target.value })
         }
         value={props.task.description}
       ></textarea>
+
+      <div className="my-1"></div>
+
+      <div className="flex">
+        <div className="flex items-center">
+          <span className="inline-block w-4 h-4">{getIconForMode(mode)}</span>
+          <span className="mx-1"></span>
+          <span className="font-semibold inline">{mode}</span>
+        </div>
+
+        <div className="grow"></div>
+
+        <Button onClick={(_) => props.setView(props.task.id)}>
+          <ArrowRightIcon className="h-4 w-4" />
+        </Button>
+      </div>
     </div>
   );
 }
