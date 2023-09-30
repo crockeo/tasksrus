@@ -5,7 +5,6 @@ import { useHotkeys } from "react-hotkeys-hook";
 
 import SideView from "./SideView.tsx";
 import MainView from "./MainView.tsx";
-import SearchView from "./SearchView.tsx";
 import { Task, Mode, View, isMode } from "./types.ts";
 
 /*
@@ -33,6 +32,20 @@ function App() {
   const [view, rawSetView] = useState(Mode.Inbox as View);
   const [sideBarTasks, setSideBarTasks] = useState([] as Array<Task>);
   const [viewTasks, setViewTasks] = useState([] as Array<Task>);
+
+  let order = [
+    Mode.Inbox,
+    Mode.Today,
+    Mode.Upcoming,
+    Mode.Anytime,
+    Mode.Someday,
+    Mode.Logbook,
+    Mode.Trash,
+  ];
+  for (let i = 0; i < order.length; i++) {
+    let mode = order[i];
+    useHotkeys(`mod+${i + 1}`, () => setView(mode));
+  }
 
   async function getTasksForView(view: View): Promise<Array<Task>> {
     if (isMode(view)) {
