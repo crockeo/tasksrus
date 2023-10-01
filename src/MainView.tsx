@@ -50,14 +50,32 @@ interface ITaskListViewProps {
 
 function TaskListView(props: ITaskListViewProps) {
   const [selected, setSelected] = useState(null as number | null);
+  const [opened, setOpened] = useState(false);
 
-  useEffect(() => setSelected(null), [props.mode]);
-
-  useHotkeys(["escape", "enter"], () => {
+  useEffect(() => {
     setSelected(null);
+    setOpened(false);
+  }, [props.mode]);
+
+  useHotkeys("escape", () => {
+    if (opened) {
+      setOpened(false);
+      return;
+    }
+    if (selected != null) {
+      setSelected(null);
+      return;
+    }
   });
 
-  useHotkeys("up", () => {
+  useHotkeys("enter", () => {
+    if (selected == null) {
+      return;
+    }
+    setOpened(!opened);
+  });
+
+  useHotkeys(["up", "shift+tab"], () => {
     if (props.tasks.length == 0) {
       return;
     }
@@ -71,10 +89,11 @@ function TaskListView(props: ITaskListViewProps) {
       return;
     }
 
+    setOpened(false);
     setSelected(selected - 1);
   });
 
-  useHotkeys("down", () => {
+  useHotkeys(["down", "tab"], () => {
     if (props.tasks.length == 0) {
       return;
     }
@@ -88,8 +107,24 @@ function TaskListView(props: ITaskListViewProps) {
       return;
     }
 
+    setOpened(false);
     setSelected(selected + 1);
   });
+
+  useHotkeys("mod+k", () => {
+    if (selected == null) {
+      return;
+    }
+    let task = props.tasks[selected];
+    if (task.completed) {
+      task = { ...task, completed: null };
+    } else {
+      task = { ...task, completed: iso8601Now() };
+    }
+    props.updateTask(task);
+  });
+
+  useHotkeys("mod+n", () => {});
 
   return (
     <div
@@ -118,7 +153,15 @@ function TaskListView(props: ITaskListViewProps) {
               evt.stopPropagation();
               setSelected(i);
             }}
-            selected={selected == i}
+            selected={(() => {
+              if (selected == i && opened) {
+                return SelectedState.Opened;
+              }
+              if (selected == i) {
+                return SelectedState.Selected;
+              }
+              return SelectedState.None;
+            })()}
             setView={props.setView}
             task={task}
             updateTask={props.updateTask}
@@ -129,9 +172,15 @@ function TaskListView(props: ITaskListViewProps) {
   );
 }
 
+enum SelectedState {
+  None,
+  Selected,
+  Opened,
+}
+
 interface ITaskListItemProps {
   onClick: (evt: React.MouseEvent<HTMLSpanElement>) => any;
-  selected: boolean;
+  selected: SelectedState;
   setView: (view: View) => any;
   task: Task;
   updateTask: (task: Task) => any;
@@ -156,13 +205,14 @@ function TaskListItem(props: ITaskListItemProps) {
         className="checkbox checkbox-sm"
         type="checkbox"
         onChange={(e) => setChecked(e.target.checked)}
+        checked={props.task.completed != null}
       />
       <span className="mx-1"></span>
     </>
   );
 
   let title;
-  if (props.selected) {
+  if (props.selected == SelectedState.Opened) {
     title = (
       <input
         className="bg-transparent grow focus:outline-none"
@@ -198,16 +248,17 @@ function TaskListItem(props: ITaskListItemProps) {
     "my-1",
     "rounded",
   );
-  if (props.selected) {
+  if (props.selected == SelectedState.Opened) {
     className = classNames(className, "border-stone-600", "shadow-xl");
+  } else if (props.selected == SelectedState.Selected) {
+    className = classNames(className, "bg-sky-800", "border-sky-800");
   } else {
     className = classNames(
       className,
-      "active:bg-stone-600",
+      "active:bg-sky-800",
       "border-transparent",
       "cursor-default",
-      "hover:border-stone-600",
-      "transition-all",
+      "hover:border-sky-800",
     );
   }
 
@@ -218,7 +269,7 @@ function TaskListItem(props: ITaskListItemProps) {
         {title}
       </div>
 
-      {props.selected ? (
+      {props.selected == SelectedState.Opened ? (
         <TaskListItemBody
           setView={props.setView}
           task={props.task}
@@ -257,6 +308,7 @@ function TaskListItemBody(props: ITaskListItemBodyProps) {
     <div className="flex flex-col py-2">
       <TextArea
         className="bg-transparent grow p-1 rounded focus:outline-none"
+        placeholder="Description"
         onChange={(evt) =>
           props.updateTask({ ...props.task, description: evt.target.value })
         }

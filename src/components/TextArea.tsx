@@ -6,6 +6,7 @@ export interface Props {
   value: string;
 
   className?: string;
+  placeholder?: string;
 }
 
 function TextArea(props: Props) {
@@ -25,6 +26,7 @@ function TextArea(props: Props) {
     >
       <textarea
         className={classNames(props.className, "resize-none", "visible")}
+        placeholder={props.placeholder}
         onChange={props.onChange}
         ref={textareaRef}
         value={props.value}
