@@ -116,6 +116,7 @@ function App() {
 
       <div className="bg-stone-800 col-span-4 h-screen">
         <MainView
+          newTask={newTask}
           setView={setView}
           tasks={viewTasks}
           updateTask={updateTask}

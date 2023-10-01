@@ -10,6 +10,7 @@ import Button from "./Button.tsx";
 import TextArea from "./components/TextArea.tsx";
 
 export interface IMainViewProps {
+  newTask: () => any;
   setView: (view: View) => any;
   tasks: Task[];
   updateTask: (task: Task) => any;
@@ -25,6 +26,7 @@ function MainView(props: IMainViewProps) {
     view = (
       <TaskListView
         mode={mode}
+        newTask={props.newTask}
         setView={props.setView}
         tasks={props.tasks}
         updateTask={props.updateTask}
@@ -43,6 +45,7 @@ function LoadingView() {
 
 interface ITaskListViewProps {
   mode: Mode;
+  newTask: () => any;
   setView: (view: View) => any;
   tasks: Task[];
   updateTask: (task: Task) => any;
@@ -124,7 +127,7 @@ function TaskListView(props: ITaskListViewProps) {
     props.updateTask(task);
   });
 
-  useHotkeys("mod+n", () => {});
+  useHotkeys("mod+n", props.newTask);
 
   return (
     <div
