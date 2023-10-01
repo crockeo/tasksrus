@@ -18,6 +18,7 @@ pub struct Task {
     pub description: String,
     pub scheduled: Scheduled,
     pub completed: Option<NaiveDate>,
+    pub deleted: Option<NaiveDate>,
 }
 
 impl Task {
@@ -33,9 +34,16 @@ impl Task {
         let scheduled_str: String = row.get("scheduled")?;
         let scheduled = Scheduled::from_str(&scheduled_str)?;
 
-        let completed_str: Option<String> = row.get("completed")?;
-        let completed: Option<NaiveDate> = if let Some(completed_str) = completed_str {
-            Some(NaiveDate::parse_from_str(&completed_str, ISO_8601_FMT)?)
+        let completed: Option<NaiveDate> = if let Some(completed) = row.get("completed")? {
+            let completed: String = completed;
+            Some(NaiveDate::parse_from_str(&completed, ISO_8601_FMT)?)
+        } else {
+            None
+        };
+
+        let deleted: Option<NaiveDate> = if let Some(deleted) = row.get("deleted")? {
+            let deleted: String = deleted;
+            Some(NaiveDate::parse_from_str(&deleted, ISO_8601_FMT)?)
         } else {
             None
         };
@@ -46,6 +54,7 @@ impl Task {
             description: row.get("description")?,
             scheduled,
             completed,
+            deleted,
         })
     }
 }
@@ -95,10 +104,31 @@ impl Database {
     }
 
     fn migrate(&self) -> anyhow::Result<()> {
+        let version = match self.get_version() {
+            Ok(version) => version,
+            Err(_) => 0,
+        };
+
         let conn = self.conn.lock().unwrap();
-        let bootstrap = include_str!("sql/00_bootstrap.sql");
-        conn.execute_batch(bootstrap)?;
+        if version < 1 {
+            let bootstrap = include_str!("sql/01_bootstrap.sql");
+            conn.execute_batch(bootstrap)?;
+        }
+
+        if version < 2 {
+            let add_deleted = include_str!("sql/02_add_deleted.sql");
+            conn.execute_batch(add_deleted)?;
+        }
+
         Ok(())
+    }
+
+    fn get_version(&self) -> anyhow::Result<usize> {
+        let conn = self.conn.lock().unwrap();
+        let version = conn.query_row("SELECT * FROM database_metadata LIMIT 1", (), |row| {
+            row.get("version")
+        })?;
+        Ok(version)
     }
 
     pub fn new_task(&self) -> anyhow::Result<Task> {
@@ -113,6 +143,7 @@ impl Database {
             description: "".into(),
             scheduled: Scheduled::Anytime,
             completed: None,
+            deleted: None,
         })
     }
 
@@ -138,6 +169,8 @@ impl Database {
             &task.description,
             task.scheduled.to_string(),
             task.completed.map(|c| c.format(ISO_8601_FMT).to_string()),
+            task.deleted
+                .map(|c: NaiveDate| c.format(ISO_8601_FMT).to_string()),
             task.id,
         ))?;
 
@@ -211,6 +244,15 @@ impl Database {
         let conn = self.conn.lock().unwrap();
 
         let mut statement = conn.prepare(include_str!("sql/queries/logbook.sql"))?;
+        let rows = statement.query(())?;
+
+        Task::from_rows(rows)
+    }
+
+    pub fn trash(&self) -> anyhow::Result<Vec<Task>> {
+        let conn = self.conn.lock().unwrap();
+
+        let mut statement = conn.prepare(include_str!("sql/queries/trash.sql"))?;
         let rows = statement.query(())?;
 
         Task::from_rows(rows)

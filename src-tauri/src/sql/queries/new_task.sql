@@ -2,10 +2,12 @@ INSERT INTO tasks (
   title,
   description,
   scheduled,
-  completed
+  completed,
+  deleted
 ) VALUES (
   '',
   '',
   'anytime',
+  NULL,
   NULL
 )

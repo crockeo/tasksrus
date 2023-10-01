@@ -2,6 +2,7 @@ SELECT *
 FROM tasks
 WHERE scheduled = 'anytime'
   AND completed IS NULL
+  AND deleted IS NULL
   AND NOT EXISTS (
   SELECT *
   FROM links

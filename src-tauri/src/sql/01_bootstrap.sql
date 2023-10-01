@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS database_metadata (
 
 -- Bootstrap the version to be 0, if a row does not yet exist.
 INSERT INTO database_metadata (version)
-SELECT 0
+SELECT 1
 WHERE NOT EXISTS (SELECT * FROM database_metadata);
 
 CREATE TABLE IF NOT EXISTS tasks (

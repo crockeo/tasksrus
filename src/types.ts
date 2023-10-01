@@ -4,6 +4,7 @@ export interface Task {
   description: string;
   scheduled: string;
   completed: string | null;
+  deleted: string | null;
 }
 
 export interface GetTaskResponse {

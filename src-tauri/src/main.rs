@@ -6,7 +6,6 @@ use crate::database::Database;
 use crate::database::Task;
 use database::TaskID;
 use serde::Deserialize;
-use serde::Serialize;
 use tauri::InvokeError;
 use tauri::State;
 
@@ -51,7 +50,7 @@ fn get_tasks_for_view(database: State<Database>, view: View) -> Result<Vec<Task>
         Anytime => database.anytime(),
         Someday => database.someday(),
         Logbook => database.logbook(),
-        Trash => Ok(vec![]), // TODO(crockeo): implement this!
+        Trash => database.trash(),
     }?)
 }
 

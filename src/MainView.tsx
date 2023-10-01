@@ -127,6 +127,17 @@ function TaskListView(props: ITaskListViewProps) {
     props.updateTask(task);
   });
 
+  useHotkeys("mod+backspace", () => {
+    if (selected == null) {
+      return;
+    }
+    let task = {
+      ...props.tasks[selected],
+      deleted: iso8601Now(),
+    };
+    props.updateTask(task);
+  });
+
   useHotkeys("mod+n", props.newTask);
 
   return (

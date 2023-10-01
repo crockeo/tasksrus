@@ -1,0 +1,4 @@
+SELECT *
+FROM tasks
+WHERE deleted IS NOT NULL
+ORDER BY deleted DESC

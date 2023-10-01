@@ -2,5 +2,6 @@ UPDATE tasks
 SET title = ?,
     description = ?,
     scheduled = ?,
-    completed = ?
+    completed = ?,
+    deleted = ?
 WHERE id = ?
